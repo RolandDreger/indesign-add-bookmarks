@@ -581,7 +581,7 @@ function __makeBookmarks(_selectedValues) {
 			_bookmarkCondition = __makeCondition();
 			__mark(_selectedValue, _bookmarkCondition);
 			_hits = __find(NothingEnum.nothing, _bookmarkCondition);
-			_deleteCondition();
+			__deleteCondition();
 			_result = __addBookmarksTo(_hits, null, null, _parentBookmark);
 			break;
 		default:
@@ -942,6 +942,10 @@ function __find(_what, _bookmarkCondition) {
  */
 function __makeCondition() {
 
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return false;
+	}
+
 	var _doc = app.activeDocument;
 	var _bookmarkCondition = _doc.conditions.itemByName(":::Bookmark:::");
 
@@ -963,10 +967,16 @@ function __makeCondition() {
  * Delete condition
  * @returns 
  */
-function _deleteCondition() {
+function __deleteCondition() {
+
+	if (!_global) {
+		return false;
+	}
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return false;
+	}
 
 	var _doc = app.activeDocument;
-
 	if (_doc.conditions.itemByName(":::Bookmark:::").isValid) {
 		_doc.conditions.itemByName(":::Bookmark:::").remove();
 	}
@@ -981,9 +991,18 @@ function _deleteCondition() {
  */
 function __alertConditionalText() {
 
-	if (app.activeDocument.conditions.length > 0) {
+	if (!_global) {
+		return false;
+	}
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return false;
+	}
+
+	var _doc = app.activeDocument;
+	if (_doc.conditions.length > 0) {
 		return confirm(localize(_global.conditionAlert));
 	}
+
 	return true;
 }
 
