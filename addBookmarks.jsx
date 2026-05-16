@@ -560,8 +560,7 @@ function __makeBookmarks(_selectedValues) {
 		_bookmarkCondition,
 		_hits,
 		_result,
-		_continue = true,
-		i;
+		_continue = true;
 
 	if (_selectedValue == null || _selectedValue == "") { return [0, 0]; }
 
@@ -577,11 +576,20 @@ function __makeBookmarks(_selectedValues) {
 			break;
 		case "String":
 			_continue = __alertConditionalText();
-			if (!_continue) { return [0, 0]; }
+			if (!_continue) {
+				return [0, 0];
+			}
+			/* Make text condition */
 			_bookmarkCondition = __makeCondition();
-			__mark(_selectedValue, _bookmarkCondition);
-			_hits = __find(NothingEnum.nothing, _bookmarkCondition);
+			if (!_bookmarkCondition) {
+				return [0, 0];
+			}
+			/* Mark target texts with condition */
+			__changeGREP(_doc, { findWhat: _selectedValue }, { changeConditionsMode: ChangeConditionsModes.REPLACE_WITH, appliedConditions: [_bookmarkCondition] }, "forward");
+			/* Find target texts by condition */
+			_hits = __findGREP(_doc, { appliedConditions: [_bookmarkCondition] }, "forward");
 			__deleteCondition();
+			/* Add bookmarks */
 			_result = __addBookmarksTo(_hits, null, null, _parentBookmark);
 			break;
 		default:
@@ -884,55 +892,138 @@ function __mark(_what,_bookmarkCondition) {
 
 
 
+/**
+ * Ersetzen mit GREP
+ * @param {Any} _place 
+ * @param {Object} _findPropObj 
+ * @param {Object} _changePropObj 
+ * @param {String} _mode 
+ * @returns {Array}
+ */
+function __changeGREP(_place, _findPropObj, _changePropObj, _mode) {
 
-function __find(_what, _bookmarkCondition) {
+	if (!_place || !(_place.hasOwnProperty("findGrep"))) { return []; }
+	if (!_findPropObj || !(_findPropObj instanceof Object)) { return []; }
+	if (!_changePropObj || !(_changePropObj instanceof Object)) { return []; }
+	if (!_mode || _mode.constructor !== String) { return []; }
 
-	var _results;
-
-	with (app) {
-		with (findChangeGrepOptions) {
-			//User-Einstellungen speichern
-			var _userIncludeFootnotes = includeFootnotes,
-				_userIncludeHiddenLayers = includeHiddenLayers,
-				_userIncludeLockedLayersForFind = includeLockedLayersForFind,
-				_userIncludeLockedStoriesForFind = includeLockedStoriesForFind,
-				_userIncludeMasterPages = includeMasterPages;
-			//Script-Einstellungen setzen
-			includeFootnotes = true;
-			includeHiddenLayers = true;
-			includeLockedLayersForFind = false;
-			includeLockedStoriesForFind = false;
-			includeMasterPages = false;
-		}
-
-		findGrepPreferences = NothingEnum.nothing;
-		changeGrepPreferences = NothingEnum.nothing;
-
-		with (findGrepPreferences) {
-			findWhat = _what;
-			appliedConditions = [_bookmarkCondition];
-		}
-
-		try {
-			_results = app.activeDocument.findGrep();
-		} catch (e) {
-			alert("Fehler: \r" + e + "Zeile: " + e.line);
-		}
-
-		findGrepPreferences = NothingEnum.nothing;
-		changeGrepPreferences = NothingEnum.nothing;
-
-		with (findChangeGrepOptions) {
-			//User-Einstellungen wieder herstellen
-			includeFootnotes = _userIncludeFootnotes;
-			includeHiddenLayers = _userIncludeHiddenLayers;
-			includeLockedLayersForFind = _userIncludeLockedLayersForFind;
-			includeLockedStoriesForFind = _userIncludeLockedStoriesForFind;
-			includeMasterPages = _userIncludeMasterPages;
-		}
+	if (_place.hasOwnProperty("contents") && _place.contents === "") {
+		return [];
 	}
 
-	return _results;
+	var _reverseOrder;
+
+	switch (_mode.toLowerCase()) {
+		case "forward":
+			/*Fundstellen vorwaerts durchsuchen */
+			_reverseOrder = false;
+			break;
+		case "backward":
+			/*Fundstellen ruechwaerts durchsuchen */
+			_reverseOrder = true;
+			break;
+		default:
+			return [];
+	}
+
+	var _userProps = app.findChangeGrepOptions.properties;
+
+	app.findChangeGrepOptions.properties = {
+		includeFootnotes: true,
+		includeHiddenLayers: true,
+		includeLockedLayersForFind: false,
+		includeLockedStoriesForFind: false,
+		includeMasterPages: false,
+		searchBackwards: false
+	};
+
+	app.findGrepPreferences = NothingEnum.nothing;
+	app.changeGrepPreferences = NothingEnum.nothing;
+
+	var _resultArray = [];
+
+	try {
+		app.findGrepPreferences.properties = _findPropObj;
+		app.changeGrepPreferences.properties = _changePropObj;
+
+		_resultArray = _place.changeGrep(_reverseOrder);
+
+	} catch (_error) {
+		alert(_error.message);
+		_resultArray = [];
+	} finally {
+		app.findGrepPreferences = NothingEnum.nothing;
+		app.changeGrepPreferences = NothingEnum.nothing;
+		app.findChangeGrepOptions.properties = _userProps;
+	}
+
+	return _resultArray;
+}
+
+
+/**
+ * Suchen mit GREP
+ * @param {Any} _place 
+ * @param {Object} _findPropObj 
+ * @param {String} _mode 
+ * @returns {Array}
+ */
+function __findGREP(_place, _findPropObj, _mode) {
+
+	if (!_place || !(_place.hasOwnProperty("findGrep"))) { return []; }
+	if (!_findPropObj || !(_findPropObj instanceof Object)) { return []; }
+	if (!_mode || _mode.constructor !== String) { return []; }
+
+	if (_place.hasOwnProperty("contents") && _place.contents === "") {
+		return [];
+	}
+
+	var _reverseOrder;
+
+	switch (_mode.toLowerCase()) {
+		case "forward":
+			/*Fundstellen vorwaerts durchsuchen */
+			_reverseOrder = false;
+			break;
+		case "backward":
+			/*Fundstellen ruechwaerts durchsuchen */
+			_reverseOrder = true;
+			break;
+		default:
+			return [];
+	}
+
+	var _userProps = app.findChangeGrepOptions.properties;
+
+	app.findChangeGrepOptions.properties = {
+		includeFootnotes: true,
+		includeHiddenLayers: true,
+		includeLockedLayersForFind: false,
+		includeLockedStoriesForFind: false,
+		includeMasterPages: false,
+		searchBackwards: false
+	};
+
+	app.findGrepPreferences = NothingEnum.nothing;
+	app.changeGrepPreferences = NothingEnum.nothing;
+
+	var _resultArray = [];
+
+	try {
+
+		app.findGrepPreferences.properties = _findPropObj;
+		_resultArray = _place.findGrep(_reverseOrder);
+
+	} catch (_error) {
+		alert(_error.message);
+		_resultArray = [];
+	} finally {
+		app.findGrepPreferences = NothingEnum.nothing;
+		app.changeGrepPreferences = NothingEnum.nothing;
+		app.findChangeGrepOptions.properties = _userProps;
+	}
+
+	return _resultArray;
 }
 
 
@@ -1131,8 +1222,8 @@ function __defLocalizeStrings() {
 	}
 
 	_global.conditionAlert = {
-		en: "Note! You already use »Conditional Text« in your document.\r\rIn certain cases these conditions can be overwritten by this script.\r\rContinue Anyway?",
-		de: "Hinweis!\rSie arbeiten in Ihrem Dokument mit »bedingtem Text«.\r\rIn bestimmten F\u00e4llen k\u00f6nnen die an den Suchbegriffen angewandten »Bedingungen« durch dieses Skipts \u00fcberschrieben werden.\r\rTrotzdem fortfahren?"
+		en: "Important Note!\rYou are using “conditional text” in your document.\r\rWith a GREP search, the “text conditions” you applied are removed from the matches.\r\rContinue Anyway?",
+		de: "Wichtiger Hinweis!\rDu verwendest in deinem Dokument »bedingten Text«.\r\rBei der GREP-Suche werden die von dir zugewiesenen »Bedingungen« an den Fundstellen entfernt.\r\rTrotzdem fortfahren?"
 	}
 
 	_global.parentBookmarkCheckboxLabel = {
