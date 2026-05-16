@@ -44,6 +44,12 @@ function __main() {
 		return;
 	}
 
+	/* Deutsch-Englische Dialogtexte definieren */
+	__defLocalizeStrings();
+
+	/* Progressbar definieren */
+	_global["progressbar"] = __createProgressbar();
+
 	var _bookmarkPanelVisible = __openBookmarkPanel();
 	if(!_bookmarkPanelVisible) {
 		alert(localize(_global.openBookmarkPanelLabel));
@@ -95,8 +101,6 @@ function __showDialog() {
 
 	var _doc = app.activeDocument;
 	var _icons = __defineIconsForUI();
-
-	__defLocalizeStrings();
 
 	var _ui = new Window("palette", localize(_global.addBookmarks));
 	with (_ui) {
@@ -378,6 +382,9 @@ function __showDialog() {
 
 
 	_ui.onClose = function () {
+		if (!!_global && _global.hasOwnProperty("progressbar")) {
+			_global["progressbar"].close();
+		}
 		_global = null;
 	}
 
@@ -593,27 +600,27 @@ function __makeBookmarks(_selectedValues) {
  * @param {*} _appliedStyle 
  * @param {*} _selectedStyle 
  * @param {*} _parentBookmark 
- * @returns 
+ * @returns {Array}
  */
 function __addBookmarksTo(_objs,_appliedStyle,_selectedStyle,_parentBookmark) {
 
-	var _progressWin,
-		_start = 0,
-		_stop = _objs.length,
-		_keyState,
-		_bookmarkCounter = 0,
-		_errorCounter = 0;
+	if (!_global) {
+		return [0, 0];
+	}
 
-	_progressWin = __showProgressbar(_start, _stop);
+	var _bookmarkCounter = 0;
+	var _errorCounter = 0;
 
-	for (i = _objs.length - 1; i >= 0; i--) {
+	_global["progressbar"].init(0, _objs.length, localize(_global.addBookmarksLabel), "");
 
-		_progressWin.children[0].text = _objs[i].contents;
-		_progressWin.children[1].value = _stop - i;
-		_keyState = ScriptUI.environment.keyboardState;
+	for (var i = _objs.length - 1; i >= 0; i--) {
 
+		_global["progressbar"].setLabel(String(_objs[i].contents));
+		_global["progressbar"].step();
+
+		var _keyState = ScriptUI.environment.keyboardState;
 		if (_keyState.keyName == "Escape") {
-			_progressWin.close();
+			_global["progressbar"].close();
 			break;
 		}
 
@@ -626,8 +633,10 @@ function __addBookmarksTo(_objs,_appliedStyle,_selectedStyle,_parentBookmark) {
 		}
 	}
 
+	_global["progressbar"].close();
+
 	return [_bookmarkCounter, _errorCounter];
-} /* END function __addBookmarksTo */
+}
 
 
 
@@ -981,39 +990,44 @@ function __alertConditionalText() {
 
 
 /**
- * Show progressbar
- * @param {number} _start Start of bar
- * @param {number} _stop End of bar
- * @returns {UIWindow}
+ * Progressbar
+ * @returns SUIWindow
  */
-function __showProgressbar(_start, _stop) {
+function __createProgressbar() {
 
-	var _progressWin = new Window('palette');
-	with (_progressWin) {
-		spacing = 5;
-		margins = [20, 20, 20, 20];
-		alignChildren = ["fill", "center"];
-		var _indicator = add("statictext", undefined, "");
-		with (_indicator) {
-			characters = 30; /* Breitenvorgabe des Fensters */
-			justify = "center";
-		}
-		var _progressbar = add('progressbar', undefined, _start, _stop);
-		with (_progressbar) {
-			minimumSize.width = "250";
-		}
-		var _cancelLabelGroup = add("group");
-		with (_cancelLabelGroup) {
-			orientation = "column";
-			margins = [0, 5, 0, 0];
-			alignChildren = "center";
-			add("statictext", undefined, localize(_global.cancelWithESCLabel));
-		}
-	}
+	var _progressWindow = new Window("palette", undefined, undefined, { borderless: true });
+	_progressWindow.spacing = 10;
+	_progressWindow.margins = [20, 10, 20, 20];
+	_progressWindow.alignChildren = ["fill", "center"];
 
-	_progressWin.show();
+	var _labelText = _progressWindow.add("statictext");
+	_labelText.characters = 30; /* Breitenvorgabe des Fensters */
+	_labelText.justify = "center";
 
-	return _progressWin;
+	var _progressbar = _progressWindow.add("progressbar", undefined, 0, 0);
+	_progressbar.minimumSize.width = 340;
+	_progressbar.maximumSize.height = 6;
+
+	_progressWindow.init = function (_start, _stop, _title, _label) {
+		_progressWindow.text = (_title && _title.toString()) || _progressWindow.text;
+		_labelText.text = (_label && _label.toString()) || _labelText.text;
+		_progressbar.value = (_start && !isNaN(_start) && Number(_start)) || 0;
+		_progressbar.maxvalue = (_stop && !isNaN(_stop) && Number(_stop)) || 0;
+		this.show();
+	}; /* END function init */
+
+	_progressWindow.setLabel = function (_label) {
+		_labelText.text = (_label && _label.toString()) || "";
+		this.update();
+	}; /* END function setLabel */
+
+	_progressWindow.step = function (_step, _label) {
+		_labelText.text = (_label && _label.toString()) || _labelText.text;
+		_progressbar.value = (_step && !isNaN(_step) && Number(_step)) || _progressbar.value + 1;
+		this.update();
+	}; /* END function push */
+
+	return _progressWindow;
 }
 
 
@@ -1110,6 +1124,11 @@ function __defLocalizeStrings() {
 	_global.cancelWithESCLabel = {
 		en: "Cancel with ESC",
 		de: "Abbrechen mit ESC"
+	}
+
+	_global.addBookmarksLabel = {
+		en: "Add bookmarks",
+		de: "Lesezeichen hinzufügen"
 	}
 
 } /* END function __defLocalizeStrings */
