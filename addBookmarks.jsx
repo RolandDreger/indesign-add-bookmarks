@@ -39,11 +39,6 @@ function __main() {
 		return;
 	}
 
-	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-		_global = null;
-		return;
-	}
-
 	/* Define German-English dialog texts */
 	__defLocalizeStrings();
 
@@ -101,7 +96,6 @@ function __openBookmarkPanel() {
  */
 function __showDialog() {
 
-	var _doc = app.activeDocument;
 	var _icons = __defineIconsForUI();
 
 	var _ui = new Window("palette", localize(_global.addBookmarks));
@@ -225,22 +219,16 @@ function __showDialog() {
 	_pStyleButton.onClick = function () {
 		__showSelectedItem(this, _inputGroup, _arrowGroup);
 	}
-	_pStyleDropDown.addEventListener("mousedown", __pStyleDropDownHandler); /* CS6 */
-	_pStyleDropDown.addEventListener("focus", __pStyleDropDownHandler); /* CC */
-	function __pStyleDropDownHandler() {
+	_pStyleDropDown.onActivate = function () {
 		__fillStylesDropDown(_pStyleDropDown, "paragraph styles");
-		return;
 	}
 
 	/* Character styles */
 	_cStyleButton.onClick = function () {
 		__showSelectedItem(this, _inputGroup, _arrowGroup);
 	}
-	_cStyleDropDown.addEventListener("mousedown", __cStyleDropDownHandler); /* CS6 */
-	_cStyleDropDown.addEventListener("focus", __cStyleDropDownHandler); /* CC */
-	function __cStyleDropDownHandler() {
+	_cStyleDropDown.onActivate = function () {
 		__fillStylesDropDown(_cStyleDropDown, "character styles");
-		return;
 	}
 
 	/* GREP */
@@ -257,11 +245,8 @@ function __showDialog() {
 			_parentBookmarkDropdown.hide();
 		}
 	}
-	_parentBookmarkDropdown.addEventListener("mousedown", __parentBookmarkDropdownHandler); /* CS6 */
-	_parentBookmarkDropdown.addEventListener("focus", __parentBookmarkDropdownHandler); /* CC */
-	function __parentBookmarkDropdownHandler() {
+	_parentBookmarkDropdown.onActivate = function () {
 		__fillParentBookmarkDropdown(_parentBookmarkDropdown);
-		return;
 	}
 
 	/* Start */
@@ -404,9 +389,9 @@ function __fillStylesDropDown(_dropDown, _styleType) {
 		return;
 	}
 
-	var _selectionIndex = 0;
+	var _selectionText = "";
 	if (!!_dropDown.selection) {
-		_selectionIndex = _dropDown.selection.index;
+		_selectionText = _dropDown.selection.text;
 	}
 
 	var _styleObjArray = __getAllStyles(_doc, _styleType);
@@ -430,7 +415,12 @@ function __fillStylesDropDown(_dropDown, _styleType) {
 		}
 	}
 
-	_dropDown.selection = _selectionIndex;
+	if (!!_selectionText) {
+		var _targetItem = _dropDown.find(_selectionText);
+		if (!!_targetItem) {
+			_dropDown.selection = _targetItem;
+		}
+	}
 
 	return;
 }
