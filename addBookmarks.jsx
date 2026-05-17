@@ -8,7 +8,7 @@
 		+ Autor: Roland Dreger 
 		+ Datum: 22. September 2014
 		
-		+ Zuletzt aktualisiert: 30. September 2018
+		+ Zuletzt aktualisiert: 17. Mai 2026
 		
 		
 		+ Freies Script fuer private und kommerzielle Nutzung (Creativ Commons Lizenz: Roland Dreger, CC BY 3.0 AT). 
@@ -44,18 +44,20 @@ function __main() {
 		return;
 	}
 
-	/* Deutsch-Englische Dialogtexte definieren */
+	/* Define German-English dialog texts */
 	__defLocalizeStrings();
 
-	/* Progressbar definieren */
+	/* Define progressbar */
 	_global["progressbar"] = __createProgressbar();
 
+	/* Open bookmark panel */
 	var _bookmarkPanelVisible = __openBookmarkPanel();
 	if(!_bookmarkPanelVisible) {
 		alert(localize(_global.openBookmarkPanelLabel));
 		return false;
 	}
 	
+	/* Show dialog to add bookmarks */
 	__showDialog();
 
 	return;
@@ -283,7 +285,7 @@ function __showDialog() {
 
 		if (this.value == true) {
 			_parentBookmarkDropdown.show();
-			__refreshParentBookmarkDropdown(_parentBookmarkDropdown);
+			__fillParentBookmarkDropdown(_parentBookmarkDropdown);
 		} else {
 			_parentBookmarkDropdown.hide();
 		}
@@ -293,13 +295,7 @@ function __showDialog() {
 	_parentBookmarkDropdown.addEventListener("mousedown", __parentBookmarkDropdownHandler); /* CS6 */
 	_parentBookmarkDropdown.addEventListener("focus", __parentBookmarkDropdownHandler); /* CC */
 	function __parentBookmarkDropdownHandler() {
-
-		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-			return;
-		}
-
-		__refreshParentBookmarkDropdown(_parentBookmarkDropdown);
-
+		__fillParentBookmarkDropdown(_parentBookmarkDropdown);
 		return;
 	}
 
@@ -356,21 +352,14 @@ function __showDialog() {
 			}
 		}
 
-		if (_parentBookmarkCheck.value == true && _parentBookmarkDropdown.selection != null) {
-
-			if (app.scriptPreferences.version >= 6) {
-				_allBookmarks = app.doScript(__getAllBookmarks, ScriptLanguage.JAVASCRIPT, undefined, UndoModes.ENTIRE_SCRIPT, localize(_global.refreshBookmarkListDoScriptLabel));
-			} else {
-				_allBookmarks = __getAllBookmarks();
+		if (_parentBookmarkCheck.value == true) {
+			var _selectedParentBookmark = _parentBookmarkDropdown.selection;
+			if (!!_selectedParentBookmark) {
+				_parentBookmark = _selectedParentBookmark.bookmark;
 			}
-			_parentBookmark = _allBookmarks[_parentBookmarkDropdown.selection.index];
 		}
 
-		if (app.scriptPreferences.version >= 6) {
-			_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, [_selection, _parentBookmark], UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
-		} else {
-			_addedBookmarks = __makeBookmarks([_selection, _parentBookmark]);
-		}
+		_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, [_selection, _parentBookmark], UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
 
 		_ui.text = __alertResult(_addedBookmarks);
 	}
@@ -454,39 +443,6 @@ function __showDialog() {
 
 
 
-
-
-	function __refreshParentBookmarkDropdown(_dropDown) {
-
-		var _allBookmarks,
-			_selectionIndex;
-
-		if (_dropDown.selection != null) {
-			_selectionIndex = _dropDown.selection.index;
-		} else {
-			_selectionIndex = 0;
-		}
-
-		_dropDown.removeAll();
-
-		if (app.scriptPreferences.version >= 6) {
-			_allBookmarks = app.doScript(__getAllBookmarks, ScriptLanguage.JAVASCRIPT, undefined, UndoModes.ENTIRE_SCRIPT, localize(_global.refreshBookmarkListDoScriptLabel));
-		} else {
-			_allBookmarks = __getAllBookmarks();
-		}
-
-		for (var i = 0; i < _allBookmarks.length; i++) {
-			_dropDown.add("item", _allBookmarks[i].extractLabel("fullName"));
-		}
-
-		_dropDown.selection = _selectionIndex;
-		return;
-	}
-
-
-
-
-
 	function __getAllStyleNames(_allStylesPropertyName, _instanceName) {
  
 		var _doc = app.activeDocument,
@@ -530,6 +486,45 @@ function __showDialog() {
 	} /* END function __getAllStyleNames */
 } /* END function __showDialog */
 
+
+
+/**
+ * Fill parent bookmark dropdown
+ * @param {*} _dropDown 
+ * @returns 
+ */
+function __fillParentBookmarkDropdown(_dropDown) {
+
+	if (!_dropDown || !(_dropDown instanceof DropDownList)) {
+		return;
+	}
+
+	var _selectionIndex;
+	var _selection = _dropDown.selection;
+	if (!_selection) {
+		_selectionIndex = 0;
+	} else {
+		_selectionIndex = _selection.index;
+	}
+
+	_dropDown.removeAll();
+
+	var _allBookmarkArray = __getAllBookmarks();
+	for (var i = 0; i < _allBookmarkArray.length; i++) {
+		var _bookmark = _allBookmarkArray[i];
+		if (!_bookmark || !_bookmark.isValid) {
+			continue;
+		}
+		var _dropDownItem = _dropDown.add("item", _bookmark.extractLabel("fullName"));
+		if (!!_dropDownItem) {
+			_dropDownItem.bookmark = _bookmark;
+		}
+	}
+
+	_dropDown.selection = _selectionIndex;
+
+	return;
+}
 
 
 
@@ -783,112 +778,79 @@ function __checkName(_name,_delimiter,_objArray) {
 
 
 
+/**
+ * Get all bookmarks
+ * @param {Document | Bookmark | undefined } _parent 
+ * @param {Array} _allBookmarkArray 
+ * @returns {Array}
+ */
+function __getAllBookmarks(_parent, _allBookmarkArray) {
 
-function __getAllBookmarks(_parent) {
- 
-	var _doc = app.activeDocument,
-		_bookmarks,
-		_moreBookmarks,
-		_parent,
-		_allBookmarks = [],
-		i, j;
+	if (!_parent || !_parent.hasOwnProperty("bookmarks") || !_parent.isValid) {
+		_parent = app.activeDocument;
+	}
+	if (!_allBookmarkArray || !(_allBookmarkArray instanceof Array)) {
+		_allBookmarkArray = [];
+	}
 
-	_parent = _parent || _doc;
-	_bookmarks = _parent.bookmarks.everyItem().getElements();
+	var _bookmarkArray = _parent.bookmarks.everyItem().getElements();
 
-	for (i = 0; i < _bookmarks.length; i++) {
+	for (var i = 0; i < _bookmarkArray.length; i++) {
 
-		if (_bookmarks[i].bookmarks.length > 0) {
-			_allBookmarks.push(_bookmarks[i]);
-			_bookmarks[i].insertLabel("fullName", __makeBookmarkFullName(_bookmarks[i]));
-			_moreBookmarks = __getAllBookmarks(_bookmarks[i]);
-			_allBookmarks = _allBookmarks.concat(_moreBookmarks);
-		} else {
-			_allBookmarks.push(_bookmarks[i]);
-			_bookmarks[i].insertLabel("fullName", __makeBookmarkFullName(_bookmarks[i]));
+		var _bookmark = _bookmarkArray[i];
+		if (!_bookmark || !_bookmark.isValid) {
+			continue;
+		}
+
+		var _fullName = __createBookmarkFullName(_bookmark);
+		if (!_fullName) {
+			continue;
+		}
+
+		_bookmark.insertLabel("fullName", _fullName);
+		_allBookmarkArray.push(_bookmark);
+
+		if (_bookmark.bookmarks.length > 0) {
+			_allBookmarkArray = __getAllBookmarks(_bookmark, _allBookmarkArray);
 		}
 	}
 
-	function __makeBookmarkFullName(_curBookmark) {
-
-		var _maxLength = 50,
-			_name = _bookmarks[i].name;
-
-		if (_name.length > _maxLength) {
-			_name = _name.substring(0, _maxLength) + "...";
-		}
-
-		if (_curBookmark.bookmarks.length > 0) {
-			_name = "\u25BC " + _name;
-		}
-
-		for (j = 1; j <= _curBookmark.indent; j++) {
-			_name = "\u2003" + _name;
-		}
-
-		return _name;
-	} /* END function __makeBookmarkFullName */
-
-	return _allBookmarks;
-} /* END function __getAllBookmarks */
+	return _allBookmarkArray;
+}
 
 
+/**
+ * Create full name of bookmark
+ * The full name includes the indentation for the dropdown menu.
+ * @param {Bookmark} _bookmark 
+ * @returns 
+ */
+function __createBookmarkFullName(_bookmark) {
 
-
-
-function __mark(_what,_bookmarkCondition) {
-
-	with (app) {
-		with (findChangeGrepOptions) {
-			//User-Einstellungen speichern
-			var _userIncludeFootnotes = includeFootnotes,
-				_userIncludeHiddenLayers = includeHiddenLayers,
-				_userIncludeLockedLayersForFind = includeLockedLayersForFind,
-				_userIncludeLockedStoriesForFind = includeLockedStoriesForFind,
-				_userIncludeMasterPages = includeMasterPages;
-			//Script-Einstellungen setzen
-			includeFootnotes = true;
-			includeHiddenLayers = true;
-			includeLockedLayersForFind = false;
-			includeLockedStoriesForFind = false;
-			includeMasterPages = true;
-		}
-
-		findGrepPreferences = NothingEnum.nothing;
-		changeGrepPreferences = NothingEnum.nothing;
-
-		with (findGrepPreferences) {
-			findWhat = _what;
-		}
-
-		with (changeGrepPreferences) {
-			changeTo = NothingEnum.nothing;
-			changeConditionsMode = ChangeConditionsModes.ADD_TO;
-			appliedConditions = [_bookmarkCondition];
-		}
-
-		try {
-			app.activeDocument.changeGrep();
-		} catch (e) {
-			alert("Fehler: \r" + e + "Zeile: " + e.line);
-		}
-
-		findGrepPreferences = NothingEnum.nothing;
-		changeGrepPreferences = NothingEnum.nothing;
-
-		with (findChangeGrepOptions) {
-			//User-Einstellungen wieder herstellen
-			includeFootnotes = _userIncludeFootnotes;
-			includeHiddenLayers = _userIncludeHiddenLayers;
-			includeLockedLayersForFind = _userIncludeLockedLayersForFind;
-			includeLockedStoriesForFind = _userIncludeLockedStoriesForFind;
-			includeMasterPages = _userIncludeMasterPages;
-		}
+	if (!_bookmark || !(_bookmark instanceof Bookmark) || !_bookmark.isValid) {
+		return "";
 	}
 
-	return;
-} /* END function __mark */
+	var _maxLength = 50;
+	var _name = _bookmark.name;
+	if (!_name) {
+		return "";
+	}
 
+	if (_name.length > _maxLength) {
+		_name = _name.substring(0, _maxLength) + "...";
+	}
+
+	if (_bookmark.bookmarks.length > 0) {
+		_name = "\u25BE " + _name;
+	}
+
+	for (var j = 1; j <= _bookmark.indent; j++) {
+		_name = "\u2003\u2003" + _name;
+	}
+
+	return _name;
+}
 
 
 
@@ -902,10 +864,18 @@ function __mark(_what,_bookmarkCondition) {
  */
 function __changeGREP(_place, _findPropObj, _changePropObj, _mode) {
 
-	if (!_place || !(_place.hasOwnProperty("findGrep"))) { return []; }
-	if (!_findPropObj || !(_findPropObj instanceof Object)) { return []; }
-	if (!_changePropObj || !(_changePropObj instanceof Object)) { return []; }
-	if (!_mode || _mode.constructor !== String) { return []; }
+	if (!_place || !(_place.hasOwnProperty("findGrep"))) {
+		return [];
+	}
+	if (!_findPropObj || !(_findPropObj instanceof Object)) {
+		return [];
+	}
+	if (!_changePropObj || !(_changePropObj instanceof Object)) {
+		return [];
+	}
+	if (!_mode || _mode.constructor !== String) {
+		return [];
+	}
 
 	if (_place.hasOwnProperty("contents") && _place.contents === "") {
 		return [];
@@ -943,6 +913,7 @@ function __changeGREP(_place, _findPropObj, _changePropObj, _mode) {
 	var _resultArray = [];
 
 	try {
+
 		app.findGrepPreferences.properties = _findPropObj;
 		app.changeGrepPreferences.properties = _changePropObj;
 
@@ -950,7 +921,6 @@ function __changeGREP(_place, _findPropObj, _changePropObj, _mode) {
 
 	} catch (_error) {
 		alert(_error.message);
-		_resultArray = [];
 	} finally {
 		app.findGrepPreferences = NothingEnum.nothing;
 		app.changeGrepPreferences = NothingEnum.nothing;
@@ -970,9 +940,15 @@ function __changeGREP(_place, _findPropObj, _changePropObj, _mode) {
  */
 function __findGREP(_place, _findPropObj, _mode) {
 
-	if (!_place || !(_place.hasOwnProperty("findGrep"))) { return []; }
-	if (!_findPropObj || !(_findPropObj instanceof Object)) { return []; }
-	if (!_mode || _mode.constructor !== String) { return []; }
+	if (!_place || !(_place.hasOwnProperty("findGrep"))) {
+		return [];
+	}
+	if (!_findPropObj || !(_findPropObj instanceof Object)) {
+		return [];
+	}
+	if (!_mode || _mode.constructor !== String) {
+		return [];
+	}
 
 	if (_place.hasOwnProperty("contents") && _place.contents === "") {
 		return [];
@@ -997,7 +973,7 @@ function __findGREP(_place, _findPropObj, _mode) {
 
 	app.findChangeGrepOptions.properties = {
 		includeFootnotes: true,
-		includeHiddenLayers: true,
+		includeHiddenLayers: false,
 		includeLockedLayersForFind: false,
 		includeLockedStoriesForFind: false,
 		includeMasterPages: false,
@@ -1016,7 +992,6 @@ function __findGREP(_place, _findPropObj, _mode) {
 
 	} catch (_error) {
 		alert(_error.message);
-		_resultArray = [];
 	} finally {
 		app.findGrepPreferences = NothingEnum.nothing;
 		app.changeGrepPreferences = NothingEnum.nothing;
@@ -1038,16 +1013,17 @@ function __makeCondition() {
 	}
 
 	var _doc = app.activeDocument;
-	var _bookmarkCondition = _doc.conditions.itemByName(":::Bookmark:::");
+	if (!_doc.isValid) {
+		return false;
+	}
 
+	var _bookmarkCondition = _doc.conditions.itemByName(":::Bookmark:::");
 	if (!_bookmarkCondition.isValid) {
 		_bookmarkCondition = _doc.conditions.add({
 			name: ":::Bookmark:::",
 			indicatorColor: [200, 200, 200],
 			indicatorMethod: ConditionIndicatorMethod.USE_HIGHLIGHT
 		});
-	} else {
-		_bookmarkCondition = _doc.conditions.itemByName(":::Bookmark:::");
 	}
 
 	return _bookmarkCondition;
@@ -1056,20 +1032,28 @@ function __makeCondition() {
 
 /**
  * Delete condition
- * @returns 
+ * @returns {boolean}
  */
 function __deleteCondition() {
 
-	if (!_global) {
-		return false;
-	}
 	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
 		return false;
 	}
 
 	var _doc = app.activeDocument;
-	if (_doc.conditions.itemByName(":::Bookmark:::").isValid) {
-		_doc.conditions.itemByName(":::Bookmark:::").remove();
+	if (!_doc.isValid) {
+		return false;
+	}
+
+	var _targetCondition = _doc.conditions.itemByName(":::Bookmark:::");
+	if (!_targetCondition.isValid) {
+		return false;
+	}
+
+	try {
+		_targetCondition.remove();
+	} catch (_error) {
+		alert(_error.message);
 	}
 
 	return;
@@ -1077,7 +1061,8 @@ function __deleteCondition() {
 
 
 /**
- * Warnmeldung falls im Dokument bereits Bedingungen fuer bedingten Text vorhanden sind.
+ * Warning message 
+ * If the document already contains conditions for conditional text.
  * @returns 
  */
 function __alertConditionalText() {
@@ -1145,7 +1130,7 @@ function __createProgressbar() {
 
 
 /**
- * Icons fuer UI
+ * Icons for UI
  * @returns { string }
  */
 function __defineIconsForUI() {
