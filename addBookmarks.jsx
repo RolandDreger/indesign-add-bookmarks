@@ -220,69 +220,38 @@ function __showDialog() {
 	}
 
 
-	/* Callbacks */
-	if (app.scriptPreferences.version < 9) {
-		_inputGroup.onDraw = function () {
-			with (_inputGroup) {
-				var _fillBrushInputGroup = graphics.newBrush(graphics.BrushType.SOLID_COLOR, [0.8, 0.8, 0.8, 1]);
-				graphics.rectPath(0, 0, size[0], size[1]);
-				graphics.fillPath(_fillBrushInputGroup);
-			}
-		}
-	}
-
-
+	/**
+	 *  Callbacks
+	 */
+	/* Paragraph styles */
 	_pStyleButton.onClick = function () {
 		__showSelectedItem(this);
 	}
-
-
 	_pStyleDropDown.addEventListener("mousedown", __pStyleDropDownHandler); /* CS6 */
 	_pStyleDropDown.addEventListener("focus", __pStyleDropDownHandler); /* CC */
 	function __pStyleDropDownHandler() {
-
-		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-			return;
-		}
-
 		__refreshStylesDropDown(_pStyleDropDown, "Pragraph Styles");
-
 		return;
 	}
 
-
+	/* Character styles */
 	_cStyleButton.onClick = function () {
 		__showSelectedItem(this);
 	}
-
-
 	_cStyleDropDown.addEventListener("mousedown", __cStyleDropDownHandler); /* CS6 */
 	_cStyleDropDown.addEventListener("focus", __cStyleDropDownHandler); /* CC */
 	function __cStyleDropDownHandler() {
-
-		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-			return;
-		}
-
 		__refreshStylesDropDown(_cStyleDropDown, "Character Styles");
-
 		return;
 	}
 
-
+	/* GREP */
 	_grepButton.onClick = function () {
 		__showSelectedItem(this);
 	}
 
- 
+	/* Parent bookmark */
 	_parentBookmarkCheck.onClick = function () {
-
-		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-			return;
-		}
-
-		var _allBookmarks;
-
 		if (this.value == true) {
 			_parentBookmarkDropdown.show();
 			__fillParentBookmarkDropdown(_parentBookmarkDropdown);
@@ -290,8 +259,6 @@ function __showDialog() {
 			_parentBookmarkDropdown.hide();
 		}
 	}
-
-
 	_parentBookmarkDropdown.addEventListener("mousedown", __parentBookmarkDropdownHandler); /* CS6 */
 	_parentBookmarkDropdown.addEventListener("focus", __parentBookmarkDropdownHandler); /* CC */
 	function __parentBookmarkDropdownHandler() {
@@ -299,20 +266,15 @@ function __showDialog() {
 		return;
 	}
 
-
+	/* Start */
 	_startButton.onClick = function () {
 
 		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
 			return;
 		}
 
-		var _selection = null,
-			_addedBookmarks,
-			_allBookmarks = [],
-			_parentBookmark,
-			_userInteractionLevel,
-			_selectedStyle,
-			_inputGrepString;
+		var _selection = null;
+		var _selectedStyle;
 
 		/* Paragraph Style */
 		if (_pStyleDropDown.visible == true) {
@@ -344,14 +306,16 @@ function __showDialog() {
 
 		/* GREP */
 		if (_grepInputField.visible == true) {
-			_inputGrepString = _grepInputField.text;
-			if (_inputGrepString != "") {
+			var _inputGrepString = _grepInputField.text;
+			if (_inputGrepString !== "") {
 				_selection = _inputGrepString;
 			} else {
 				_selection = null;
 			}
 		}
 
+		/* Parent bookmark */
+		var _parentBookmark;
 		if (_parentBookmarkCheck.value == true) {
 			var _selectedParentBookmark = _parentBookmarkDropdown.selection;
 			if (!!_selectedParentBookmark) {
@@ -359,17 +323,28 @@ function __showDialog() {
 			}
 		}
 
-		_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, [_selection, _parentBookmark], UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+		var _addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, [_selection, _parentBookmark], UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
 
 		_ui.text = __alertResult(_addedBookmarks);
 	}
 
+	/* Input group (background color) */
+	if (app.scriptPreferences.version < 9) {
+		_inputGroup.onDraw = function () {
+			with (_inputGroup) {
+				var _fillBrushInputGroup = graphics.newBrush(graphics.BrushType.SOLID_COLOR, [0.8, 0.8, 0.8, 1]);
+				graphics.rectPath(0, 0, size[0], size[1]);
+				graphics.fillPath(_fillBrushInputGroup);
+			}
+		}
+	}
 
+	/* Cancel dialog */
 	_cancelButton.onClick = function () {
 		_ui.close();
 	}
 
-
+	/* Close dialog */
 	_ui.onClose = function () {
 		if (!!_global && _global.hasOwnProperty("progressbar")) {
 			_global["progressbar"].close();
@@ -377,15 +352,12 @@ function __showDialog() {
 		_global = null;
 	}
 
-
+	/* Show dialog */
 	_ui.onShow = function () {
 		_pStyleButton.notify();
 	}
-	/* END Callbacks */
-
 
 	_ui.show();
-
 
 	return;
 
@@ -444,7 +416,11 @@ function __showDialog() {
 
 
 	function __getAllStyleNames(_allStylesPropertyName, _instanceName) {
- 
+
+		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+			return [];
+		}
+
 		var _doc = app.activeDocument,
 			_allStyles = _doc[_allStylesPropertyName],
 			_allStylesLength = _allStyles.length,
@@ -786,6 +762,9 @@ function __checkName(_name,_delimiter,_objArray) {
  */
 function __getAllBookmarks(_parent, _allBookmarkArray) {
 
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return [];
+	}
 	if (!_parent || !_parent.hasOwnProperty("bookmarks") || !_parent.isValid) {
 		_parent = app.activeDocument;
 	}
