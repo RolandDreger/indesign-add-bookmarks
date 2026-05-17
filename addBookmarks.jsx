@@ -170,15 +170,13 @@ function __showDialog() {
 				with (_placeholder) {
 					graphics.foregroundColor = graphics.newPen(graphics.PenType.SOLID_COLOR, [0.4, 0.4, 0.38], 1);
 				}
-				var _pStyleDropDown = add("dropdownlist", undefined, [_doc.allParagraphStyles[0].name, _doc.allParagraphStyles[1].name]);
+				var _pStyleDropDown = add("dropdownlist", undefined, []);
 				with (_pStyleDropDown) {
 					visible = false;
-					selection = 1;
 				} /* END _cStyleDropDown */
-				var _cStyleDropDown = add("dropdownlist", undefined, [_doc.allCharacterStyles[0].name]);
+				var _cStyleDropDown = add("dropdownlist", undefined, []);
 				with (_cStyleDropDown) {
 					visible = false;
-					selection = 0;
 				} /* END _cStyleDropDown */
 				var _grepInputField = add("edittext", undefined, "", { multiline: false });
 				with (_grepInputField) {
@@ -225,29 +223,29 @@ function __showDialog() {
 	 */
 	/* Paragraph styles */
 	_pStyleButton.onClick = function () {
-		__showSelectedItem(this);
+		__showSelectedItem(this, _inputGroup, _arrowGroup);
 	}
 	_pStyleDropDown.addEventListener("mousedown", __pStyleDropDownHandler); /* CS6 */
 	_pStyleDropDown.addEventListener("focus", __pStyleDropDownHandler); /* CC */
 	function __pStyleDropDownHandler() {
-		__refreshStylesDropDown(_pStyleDropDown, "Pragraph Styles");
+		__fillStylesDropDown(_pStyleDropDown, "paragraph styles");
 		return;
 	}
 
 	/* Character styles */
 	_cStyleButton.onClick = function () {
-		__showSelectedItem(this);
+		__showSelectedItem(this, _inputGroup, _arrowGroup);
 	}
 	_cStyleDropDown.addEventListener("mousedown", __cStyleDropDownHandler); /* CS6 */
 	_cStyleDropDown.addEventListener("focus", __cStyleDropDownHandler); /* CC */
 	function __cStyleDropDownHandler() {
-		__refreshStylesDropDown(_cStyleDropDown, "Character Styles");
+		__fillStylesDropDown(_cStyleDropDown, "character styles");
 		return;
 	}
 
 	/* GREP */
 	_grepButton.onClick = function () {
-		__showSelectedItem(this);
+		__showSelectedItem(this, _inputGroup, _arrowGroup);
 	}
 
 	/* Parent bookmark */
@@ -273,47 +271,6 @@ function __showDialog() {
 			return;
 		}
 
-		var _selection = null;
-		var _selectedStyle;
-
-		/* Paragraph Style */
-		if (_pStyleDropDown.visible == true) {
-			if (_pStyleDropDown.selection != null) {
-				_selectedStyle = app.activeDocument.allParagraphStyles[_pStyleDropDown.selection.index];
-				if (_selectedStyle != null) {
-					_selection = _selectedStyle;
-				} else {
-					_selection = null;
-				}
-			} else {
-				_selection = null;
-			}
-		}
-
-		/* Character Style */
-		if (_cStyleDropDown.visible == true) {
-			if (_cStyleDropDown.selection != null) {
-				_selectedStyle = app.activeDocument.allCharacterStyles[_cStyleDropDown.selection.index];
-				if (_selectedStyle != null) {
-					_selection = _selectedStyle;
-				} else {
-					_selection = null;
-				}
-			} else {
-				_selection = null;
-			}
-		}
-
-		/* GREP */
-		if (_grepInputField.visible == true) {
-			var _inputGrepString = _grepInputField.text;
-			if (_inputGrepString !== "") {
-				_selection = _inputGrepString;
-			} else {
-				_selection = null;
-			}
-		}
-
 		/* Parent bookmark */
 		var _parentBookmark;
 		if (_parentBookmarkCheck.value == true) {
@@ -323,9 +280,34 @@ function __showDialog() {
 			}
 		}
 
-		var _addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, [_selection, _parentBookmark], UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+		var _addedBookmarks = 0;
+		var _argsArray = [];
 
-		_ui.text = __alertResult(_addedBookmarks);
+		/* Paragraph Style */
+		if (_pStyleDropDown.visible == true) {
+			if (!!_pStyleDropDown.selection) {
+				_argsArray = [_pStyleDropDown.selection.style, _parentBookmark];
+				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+			}
+		}
+
+		/* Character Style */
+		else if (_cStyleDropDown.visible == true) {
+			if (!!_cStyleDropDown.selection) {
+				_argsArray = [_cStyleDropDown.selection.style, _parentBookmark];
+				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+			}
+		}
+
+		/* GREP */
+		else if (_grepInputField.visible == true) {
+			if (!!_grepInputField.text) {
+				_argsArray = [_grepInputField.text, _parentBookmark];
+				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+			}
+		}
+
+		_ui.text = __buildResultString(_addedBookmarks);
 	}
 
 	/* Input group (background color) */
@@ -360,108 +342,202 @@ function __showDialog() {
 	_ui.show();
 
 	return;
+}
 
 
+/**
+ * Show selected input group
+ * @param {*} _clickedButton 
+ * @returns 
+ */
+function __showSelectedItem(_clickedButton, _inputGroup, _arrowGroup) {
 
-
-	function __showSelectedItem(_item) {
-
-		var _selectedItem;
-
-		_inputGroup.children[0].visible = false;
-
-		for (var i = 0; i < _item.parent.children.length; i++) {
-			if (_item.parent.children[i] === _item) {
-				_selectedItem = _inputGroup.children[i + 1];
-				_selectedItem.visible = true;
-				_arrowGroup.children[i].children[0].visible = true;
-			} else {
-				_inputGroup.children[i + 1].visible = false;
-				_arrowGroup.children[i].children[0].visible = false;
-			}
-		}
+	if (!_clickedButton || !(_clickedButton instanceof Button)) {
 		return;
-	} /* END function __showSelectedItem */
-
-
-
-
-	function __refreshStylesDropDown(_dropDown, _styles) {
-
-		var _dropDownList,
-			_selectionIndex;
-
-		if (_dropDown.selection != null) {
-			_selectionIndex = _dropDown.selection.index;
-		} else {
-			_selectionIndex = 1;
-		}
-
-		if (_styles == "Pragraph Styles") {
-			_dropDownList = __getAllStyleNames("allParagraphStyles", "ParagraphStyleGroup");
-		} else {
-			_dropDownList = __getAllStyleNames("allCharacterStyles", "CharacterStyleGroup");
-		}
-
-		_dropDown.removeAll();
-
-		for (var i = 0; i < _dropDownList.length; i++) {
-			_dropDown.add("item", _dropDownList[i]);
-		}
-
-		_dropDown.selection = _selectionIndex;
+	}
+	if (!_inputGroup || !(_inputGroup instanceof Group)) {
 		return;
-	} /* END function __refreshStylesDropDown */
+	}
+	if (!_arrowGroup || !(_arrowGroup instanceof Group)) {
+		return;
+	}
+
+	_inputGroup.children[0].visible = false;
+
+	var _selectedItem;
+	var _inputGroupChildren = _inputGroup.children;
+
+	for (var i = 0; i < _clickedButton.parent.children.length; i++) {
+		if (_clickedButton.parent.children[i] === _clickedButton) {
+			_selectedItem = _inputGroupChildren[i + 1];
+			_selectedItem.visible = true;
+			_arrowGroup.children[i].children[0].visible = true;
+		} else {
+			_inputGroupChildren[i + 1].visible = false;
+			_arrowGroup.children[i].children[0].visible = false;
+		}
+	}
+}
 
 
+/**
+ * 
+ * @param {DropDownList} _dropDown 
+ * @param {string} _styleType 
+ * @returns 
+ */
+function __fillStylesDropDown(_dropDown, _styleType) {
 
-	function __getAllStyleNames(_allStylesPropertyName, _instanceName) {
+	if (!_dropDown || !(_dropDown instanceof DropDownList)) {
+		return;
+	}
+	if (!_styleType || typeof _styleType !== "string") {
+		return;
+	}
 
-		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return;
+	}
+
+	var _doc = app.activeDocument;
+	if (!document.isValid) {
+		return;
+	}
+
+	var _selectionIndex = 0;
+	if (!!_dropDown.selection) {
+		_selectionIndex = _dropDown.selection.index;
+	}
+
+	var _styleObjArray = __getAllStyles(_doc, _styleType);
+
+	_dropDown.removeAll();
+
+	for (var i = 0; i < _styleObjArray.length; i++) {
+		var _styleObj = _styleObjArray[i];
+		if (!_styleObj) {
+			continue;
+		}
+		var _stylePathArray = _styleObj.path;
+		var _style = _styleObj.style;
+		if (!_stylePathArray || !_style || !_style.isValid) {
+			continue;
+		}
+		var _stylePath = _stylePathArray.join(" → ");
+		var item = _dropDown.add("item", _stylePath);
+		if (!!item) {
+			item.style = _style;
+		}
+	}
+
+	_dropDown.selection = _selectionIndex;
+
+	return;
+}
+
+
+/**
+ * Get all styles
+ * @param { Document } _doc 
+ * @param { "paragraph style" | "character styles" | "object styles" | "table styles" | "cell styles" } _styleType 
+ * @returns { Array<{"path": Array<string>, "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle }> }
+ */
+function __getAllStyles(_doc, _styleType) {
+
+	if (!_doc || !_doc.isValid || !(_doc instanceof Document)) {
+		return false;
+	}
+	if (!_styleType || _styleType.constructor.name !== "String") {
+		return false;
+	}
+
+	var _allStylesPropertyName;
+	var _styleGroupInstance;
+	var _startIndex;
+
+	switch (_styleType) {
+		case "paragraph styles":
+			_allStylesPropertyName = "allParagraphStyles";
+			_styleGroupInstance = "ParagraphStyleGroup";
+			_startIndex = 2;
+			break;
+		case "character styles":
+			_allStylesPropertyName = "allCharacterStyles";
+			_styleGroupInstance = "CharacterStyleGroup";
+			_startIndex = 1;
+			break;
+		case "object styles":
+			_allStylesPropertyName = "allObjectStyles";
+			_styleGroupInstance = "ObjectStyleGroup";
+			_startIndex = 4;
+			break;
+		case "table styles":
+			_allStylesPropertyName = "allTableStyles";
+			_styleGroupInstance = "TableStyleGroup";
+			_startIndex = 2;
+			break;
+		case "cell styles":
+			_allStylesPropertyName = "allCellStyles";
+			_styleGroupInstance = "CellStyleGroup";
+			_startIndex = 1;
+			break;
+		default:
 			return [];
+	}
+
+	var _styleObjArray = [];
+	var _allStylesArray = _doc[_allStylesPropertyName];
+
+	for (var i = _startIndex; i < _allStylesArray.length; i += 1) {
+		var _style = _allStylesArray[i];
+		if (!_style || !_style.isValid) {
+			continue;
 		}
+		var _stylePathArray = __getStyleName(_style, [_style.name], _styleGroupInstance);
+		_styleObjArray.push({
+			"path": _stylePathArray,
+			"style": _style
+		});
+	}
 
-		var _doc = app.activeDocument,
-			_allStyles = _doc[_allStylesPropertyName],
-			_allStylesLength = _allStyles.length,
-			_style,
-			_styleName = "",
-			_allStyleNames = [],
-			i;
+	return _styleObjArray;
+}
 
-		for (i = 0; i < _allStylesLength; i++) {
-			_style = _allStyles[i];
-			_styleName = _style.name;
-			_styleName = __getStyleName(_style, _styleName);
-			_allStyleNames.push(_styleName);
-		}
 
-		function __getStyleName(_style, _styleName) {
+/**
+ * Get style name
+ * @param {ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle} _style 
+ * @param {Array} _stylePathArray 
+ * @param {string} _styleGroupInstance 
+ * @returns 
+ */
+function __getStyleName(_style, _stylePathArray, _styleGroupInstance) {
 
-			var _styleGroupName,
-				_maxLength = 14,
-				_suffix;
+	if (!_stylePathArray || !(_stylePathArray instanceof Array)) {
+		_stylePathArray = [];
+	}
+	if (!_style || !(_style instanceof Object) || !_style.hasOwnProperty("parent") || !_style.isValid) {
+		return _stylePathArray;
+	}
 
-			if (_style.parent.constructor.name == _instanceName) {
+	var MAX_NAME_LENGTH = 101;
 
-				_styleGroupName = _style.parent.name;
+	var _styleGroup = _style.parent;
+	if (_styleGroup.constructor.name !== _styleGroupInstance) {
+		return _stylePathArray;
+	}
 
-				if (_styleGroupName.length > _maxLength) {
-					_suffix = "... > ";
-				} else {
-					_suffix = " > ";
-				}
-				_styleName = _styleGroupName.substring(0, _maxLength) + _suffix + _styleName;
-				_styleName = __getStyleName(_style.parent, _styleName);
-			}
+	var _styleGroupName = _styleGroup.name;
+	if (!_styleGroupName) {
+		return _stylePathArray;
+	}
 
-			return _styleName;
-		} /* END function __getStyleName */
+	_styleGroupName = _styleGroupName.substring(0, MAX_NAME_LENGTH);
+	_stylePathArray.unshift(_styleGroupName);
+	_stylePathArray = __getStyleName(_style.parent, _stylePathArray, _styleGroupInstance);
 
-		return _allStyleNames;
-	} /* END function __getAllStyleNames */
-} /* END function __showDialog */
-
+	return _stylePathArray;
+}
 
 
 /**
@@ -503,13 +579,12 @@ function __fillParentBookmarkDropdown(_dropDown) {
 }
 
 
-
 /**
  * 
  * @param {*} _addedBookmarks 
  * @returns 
  */
-function __alertResult(_addedBookmarks) { 
+function __buildResultString(_addedBookmarks) { 
 	return _addedBookmarks[0] + " " + localize(_global.bookmarksAddedAlert) + "\u2003|\u2003" + _addedBookmarks[1] + " " + localize(_global.errorsAlert);
 }
 
@@ -704,9 +779,6 @@ function __getAllParagraphs(_every) {
 }
 
 
-
-
-
 function __getAllTextStyleRanges(_paragraphs) {
 
 	var _textStyleRanges = [];
@@ -717,8 +789,6 @@ function __getAllTextStyleRanges(_paragraphs) {
 
 	return _textStyleRanges;
 } /* END function __getAllTextStyleRanges */
-
-
 
 
 
@@ -750,6 +820,7 @@ function __checkName(_name,_delimiter,_objArray) {
 
 	return _newName;
 }
+
 
 
 
