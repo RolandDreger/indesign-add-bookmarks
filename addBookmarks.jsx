@@ -96,6 +96,10 @@ function __openBookmarkPanel() {
  */
 function __showDialog() {
 
+	if (!_global) {
+		return;
+	}
+
 	var _icons = __defineIconsForUI();
 
 	var _ui = new Window("palette", localize(_global.addBookmarks));
@@ -271,8 +275,8 @@ function __showDialog() {
 		/* Paragraph Style */
 		if (_pStyleDropDown.visible == true) {
 			if (!!_pStyleDropDown.selection) {
-				_argsArray = [_pStyleDropDown.selection.style, _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+				_argsArray = [[_pStyleDropDown.selection.style], _parentBookmark];
+				_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 			}
 		}
 
@@ -280,7 +284,7 @@ function __showDialog() {
 		else if (_cStyleDropDown.visible == true) {
 			if (!!_cStyleDropDown.selection) {
 				_argsArray = [_cStyleDropDown.selection.style, _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 			}
 		}
 
@@ -288,7 +292,7 @@ function __showDialog() {
 		else if (_grepInputField.visible == true) {
 			if (!!_grepInputField.text) {
 				_argsArray = [_grepInputField.text, _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, "Add Bookmarks");
+				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 			}
 		}
 
@@ -579,54 +583,137 @@ function __buildResultString(_addedBookmarks) {
 }
 
 
+/**
+ * Make bookmarks by paragraph styles
+ * @param {Array} _doScriptArgumentArray 
+ * @returns {Array} 
+ */
+function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 
+	if (!_global || !_doScriptArgumentArray || !(_doScriptArgumentArray instanceof Array)) {
+		return [0, 0];
+	}
+
+	var _pStyleArray = _doScriptArgumentArray[0];
+	if (!_pStyleArray || !(_pStyleArray instanceof Array)) {
+		return [0, 0];
+	}
+
+	var _parentBookmark = _doScriptArgumentArray[1];
+
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return [0, 0];
+	}
+
+	var _doc = app.properties.activeDocument;
+	if (!_doc || !_doc.isValid) {
+		return [0, 0];
+	}
+
+	var _bookmarkCounter = 0;
+	var _errorCounter = 0;
+
+	/* Loop: Paragraph Styles */
+	outer: for (var s = 0; s < _pStyleArray.length; s += 1) {
+
+		var _targetPStyle = _pStyleArray[s];
+		if (!_targetPStyle || !_targetPStyle.isValid) {
+			continue;
+		}
+
+		var _pStyleMatchArray = __findGREP(_doc, { appliedParagraphStyle: _targetPStyle }, "forward");
+
+		_global["progressbar"].init(0, _pStyleMatchArray.length, localize(_global.addBookmarksLabel), "");
+
+		/* Loop: Matches for paragraph style */
+		for (var m = _pStyleMatchArray.length - 1; m >= 0; m -= 1) {
+
+			var _keyState = ScriptUI.environment.keyboardState;
+			if (_keyState.keyName == "Escape") {
+				_global["progressbar"].close();
+				break outer;
+			}
+
+			var _pStyleMatch = _pStyleMatchArray[m];
+			if (!_pStyleMatch || !_pStyleMatch.hasOwnProperty("paragraphs") || !_pStyleMatch.isValid) {
+				continue;
+			}
+
+			_global["progressbar"].setLabel(String(_pStyleMatch.contents));
+			_global["progressbar"].step();
+
+			var _paragraphArray = _pStyleMatch.paragraphs.everyItem().getElements();
+
+			/* Loop: Paragraphs for matching text */
+			for (var p = _paragraphArray.length - 1; p >= 0; p -= 1) {
+
+				var _targetParagraph = _paragraphArray[p];
+				if (!_targetParagraph || !_targetParagraph.isValid) {
+					continue;
+				}
+
+				var _wasBookmarkAdded = __addBookmark(_doc, _targetParagraph, _parentBookmark);
+				if (_wasBookmarkAdded) {
+					_bookmarkCounter += 1;
+				} else {
+					_errorCounter += 1;
+				}
+			}
+		}
+	}
+
+	_global["progressbar"].close();
+
+	return [
+		_bookmarkCounter,
+		_errorCounter
+	];
+}
 
 
 function __makeBookmarks(_selectedValues) {
 
+	if (!_global) {
+		return;
+	}
 	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
 		return false;
 	}
 
-	var _doc = app.activeDocument,
-		_selectedValue = _selectedValues[0],
-		_parentBookmark = _selectedValues[1],
-		_allParagraphs,
-		_allTextStyleRanges,
-		_bookmarkCondition,
-		_hits,
-		_result,
-		_continue = true;
+	var _doc = app.activeDocument;
 
-	if (_selectedValue == null || _selectedValue == "") { return [0, 0]; }
+	var _selectedValue = _selectedValues[0];
+	var _parentBookmark = _selectedValues[1];
+
+	if (!_selectedValue) {
+		return [0, 0];
+	}
+
+	var _result;
 
 	switch (_selectedValue.constructor.name) {
-		case "ParagraphStyle":
-			_allParagraphs = __getAllParagraphs();
-			_result = __addBookmarksTo(_allParagraphs, "appliedParagraphStyle", _selectedValue, _parentBookmark);
-			break;
 		case "CharacterStyle":
-			_allParagraphs = __getAllParagraphs();
-			_allTextStyleRanges = __getAllTextStyleRanges(_allParagraphs);
+			var _allParagraphs = __getAllParagraphs();
+			var _allTextStyleRanges = __getAllTextStyleRanges(_allParagraphs);
 			_result = __addBookmarksTo(_allTextStyleRanges, "appliedCharacterStyle", _selectedValue, _parentBookmark);
 			break;
 		case "String":
-			_continue = __alertConditionalText();
+			var _continue = __alertConditionalText();
 			if (!_continue) {
 				return [0, 0];
 			}
 			/* Make text condition */
-			_bookmarkCondition = __makeCondition();
+			var _bookmarkCondition = __makeCondition();
 			if (!_bookmarkCondition) {
 				return [0, 0];
 			}
 			/* Mark target texts with condition */
 			__changeGREP(_doc, { findWhat: _selectedValue }, { changeConditionsMode: ChangeConditionsModes.REPLACE_WITH, appliedConditions: [_bookmarkCondition] }, "forward");
 			/* Find target texts by condition */
-			_hits = __findGREP(_doc, { appliedConditions: [_bookmarkCondition] }, "forward");
+			var _grepMatches = __findGREP(_doc, { appliedConditions: [_bookmarkCondition] }, "forward");
 			__deleteCondition();
 			/* Add bookmarks */
-			_result = __addBookmarksTo(_hits, null, null, _parentBookmark);
+			_result = __addBookmarksTo(_grepMatches, null, null, _parentBookmark);
 			break;
 		default:
 			_result = [0, 0];
@@ -636,90 +723,40 @@ function __makeBookmarks(_selectedValues) {
 }
 
 
-
-
 /**
- * 
- * @param {Array} _objs 
- * @param {*} _appliedStyle 
- * @param {*} _selectedStyle 
- * @param {*} _parentBookmark 
- * @returns {Array}
+ * Add bookmarks
+ * @param {Document} _doc 
+ * @param {Text} _destText 
+ * @param {Bookmark | undefined } _parentBookmark 
+ * @returns 
  */
-function __addBookmarksTo(_objs,_appliedStyle,_selectedStyle,_parentBookmark) {
+function __addBookmark(_doc, _destText, _parentBookmark) {
 
 	if (!_global) {
-		return [0, 0];
+		return false;
 	}
-
-	var _bookmarkCounter = 0;
-	var _errorCounter = 0;
-
-	_global["progressbar"].init(0, _objs.length, localize(_global.addBookmarksLabel), "");
-
-	for (var i = _objs.length - 1; i >= 0; i--) {
-
-		_global["progressbar"].setLabel(String(_objs[i].contents));
-		_global["progressbar"].step();
-
-		var _keyState = ScriptUI.environment.keyboardState;
-		if (_keyState.keyName == "Escape") {
-			_global["progressbar"].close();
-			break;
-		}
-
-		if (_appliedStyle == null || _objs[i][_appliedStyle] == _selectedStyle) {
-			if (__addBookmark(_objs[i], _parentBookmark)) {
-				_bookmarkCounter += 1;
-			} else {
-				_errorCounter += 1;
-			}
-		}
+	if (!_doc || !_doc.isValid) {
+		return false;
 	}
-
-	_global["progressbar"].close();
-
-	return [_bookmarkCounter, _errorCounter];
-}
-
-
-
-
-
-function __addBookmark(_destTextObj,_parentBookmark) {
-
-	var _doc = app.activeDocument,
-		_destTextAnchor,
-		_destIP,
-		_destName,
-		_allTextAnchors,
-		_bookmark,
-		_bookmarkName;
-
-	if (_destTextObj.contents.constructor.name == "String") {
-		_destName = _bookmarkName = _destTextObj.contents.replace("\\s+", " ", "g").replace("[\x00-\x1F\uFEFF\uFFFC\u00AD\u200C\u200B]", "", "g").replace("\\s+$", "", ""); /* \u00AD Bedingter Trennstrich; \u200C Vebindung unterdruecken; \u200B Bedingter Zeilenumbruch */
-	} else {
-		_destName = _bookmarkName = localize(_global.anchorLabel);
-	}
-	if (_destName == "") {
-		_destName = _bookmarkName = localize(_global.anchorLabel);
-	}
-
-	try {
-		_destIP = _destTextObj.insertionPoints[0];
-		_destTextAnchor = _doc.hyperlinkTextDestinations.add(_destIP);
-	} catch (e) {
+	if (!_destText || !_destText.hasOwnProperty("contents") || !_destText.isValid) {
 		return false;
 	}
 
-	try {
-		_allTextAnchors = _doc.hyperlinkTextDestinations.everyItem().getElements();
-		_destTextAnchor.name = __checkName(_destName, " ", _allTextAnchors);
-	} catch (e) { }
+	var _bookmarkName;
+	var _destTextContents = String(_destText.contents);
+
+	/* ToDo: mehr Zeichen entfernen??? */
+	_bookmarkName = _destTextContents.replace("\\s+", " ", "g")
+		.replace("[\x00-\x1F\uFEFF\uFFFC\u00AD\u200C\u200B]", "", "g")
+		.replace("\\s+$", "", "");
+
+	if (!_bookmarkName) {
+		_bookmarkName = localize(_global.anchorLabel);
+	}
 
 	try {
-		_bookmark = _doc.bookmarks.add(_destTextAnchor);
-	/* _bookmark.showBookmark(); */
+		var _destTextAnchor = _doc.hyperlinkTextDestinations.add(_destText);
+		var _bookmark = _doc.bookmarks.add(_destTextAnchor);
 		_bookmark.move(LocationOptions.AT_BEGINNING, _parentBookmark);
 		_bookmark.name = _bookmarkName;
 	} catch (e) {
@@ -727,7 +764,7 @@ function __addBookmark(_destTextObj,_parentBookmark) {
 	}
 
 	return true;
-} /* END function __addBookmark */
+}
 
 
 
@@ -1189,6 +1226,11 @@ function __defLocalizeStrings() {
 	_global.addBookmarks = {
 		en: "Add Bookmarks 1.1",
 		de: "Add Bookmarks 1.1"
+	}
+
+	_global.goBackLabel = {
+		en: "Add Bookmarks",
+		de: "Lesezeichen erstellen"
 	}
 
 	_global.pStyleButtonLabel = {
