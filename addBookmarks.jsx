@@ -292,7 +292,7 @@ function __showDialog() {
 		else if (_grepInputField.visible == true) {
 			if (!!_grepInputField.text) {
 				_argsArray = [_grepInputField.text, _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarks, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
+				_addedBookmarks = app.doScript(__makeBookmarksByGREP, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 			}
 		}
 
@@ -578,8 +578,18 @@ function __fillParentBookmarkDropdown(_dropDown) {
  * @param {*} _addedBookmarks 
  * @returns 
  */
-function __buildResultString(_addedBookmarks) { 
-	return _addedBookmarks[0] + " " + localize(_global.bookmarksAddedAlert) + "\u2003|\u2003" + _addedBookmarks[1] + " " + localize(_global.errorsAlert);
+function __buildResultString(_addedBookmarkArray) {
+
+	if (!_global) {
+		return "";
+	}
+	if (!_addedBookmarkArray || !(_addedBookmarkArray instanceof Array) || _addedBookmarkArray.length < 2) {
+		_addedBookmarkArray = [0, 0];
+	}
+
+	var _resultString = _addedBookmarkArray[0] + " " + localize(_global.bookmarksAddedAlert) + "\u2003|\u2003" + _addedBookmarkArray[1] + " " + localize(_global.errorsAlert);
+
+	return _resultString;
 }
 
 
@@ -622,6 +632,9 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 		}
 
 		var _pStyleMatchArray = __findGREP(_doc, { "appliedParagraphStyle": _targetPStyle }, "forward");
+		if (_pStyleMatchArray.length === 0) {
+			continue;
+		}
 
 		_global["progressbar"].init(0, _pStyleMatchArray.length, localize(_global.addBookmarksLabel), "");
 
@@ -701,7 +714,7 @@ function __makeBookmarksByCharacterStyles(_doScriptArgumentArray) {
 	var _bookmarkCounter = 0;
 	var _errorCounter = 0;
 
-	/* Loop: Paragraph Styles */
+	/* Loop: Character Styles */
 	outer: for (var s = 0; s < _cStyleArray.length; s += 1) {
 
 		var _targetCStyle = _cStyleArray[s];
@@ -710,10 +723,13 @@ function __makeBookmarksByCharacterStyles(_doScriptArgumentArray) {
 		}
 
 		var _cStyleMatchArray = __findGREP(_doc, { "appliedCharacterStyle": _targetCStyle }, "forward");
+		if (_cStyleMatchArray.length === 0) {
+			continue;
+		}
 
 		_global["progressbar"].init(0, _cStyleMatchArray.length, localize(_global.addBookmarksLabel), "");
 
-		/* Loop: Matches for paragraph style */
+		/* Loop: Matches for character style */
 		for (var m = _cStyleMatchArray.length - 1; m >= 0; m -= 1) {
 
 			var _keyState = ScriptUI.environment.keyboardState;
@@ -748,51 +764,74 @@ function __makeBookmarksByCharacterStyles(_doScriptArgumentArray) {
 }
 
 
+/**
+ * Make bookmarks by GREP search
+ * @param {Array} _doScriptArgumentArray 
+ * @returns {Array} 
+ */
+function __makeBookmarksByGREP(_doScriptArgumentArray) {
 
-function __makeBookmarks(_selectedValues) {
-
-	if (!_global) {
-		return;
-	}
-	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-		return false;
-	}
-
-	var _doc = app.activeDocument;
-
-	var _selectedValue = _selectedValues[0];
-	var _parentBookmark = _selectedValues[1];
-
-	if (!_selectedValue) {
+	if (!_global || !_doScriptArgumentArray || !(_doScriptArgumentArray instanceof Array)) {
 		return [0, 0];
 	}
 
-	var _result;
-
-	switch (_selectedValue.constructor.name) {
-		case "String":
-			var _continue = __alertConditionalText();
-			if (!_continue) {
-				return [0, 0];
-			}
-			/* Make text condition */
-			var _bookmarkCondition = __makeCondition();
-			if (!_bookmarkCondition) {
-				return [0, 0];
-			}
-			/* Mark target texts with condition */
-			__changeGREP(_doc, { findWhat: _selectedValue }, { changeConditionsMode: ChangeConditionsModes.REPLACE_WITH, appliedConditions: [_bookmarkCondition] }, "forward");
-			/* Find target texts by condition */
-			var _grepMatches = __findGREP(_doc, { appliedConditions: [_bookmarkCondition] }, "forward");
-			__deleteCondition();
-			/* Add bookmarks */
-			_result = __addBookmarksTo(_grepMatches, null, null, _parentBookmark);
-			break;
-		default:
-			_result = [0, 0];
+	var _grep = _doScriptArgumentArray[0];
+	if (!_grep || typeof _grep !== "string") {
+		return [0, 0];
 	}
 
-	return _result;
+	var _parentBookmark = _doScriptArgumentArray[1];
+
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return [0, 0];
+	}
+
+	var _doc = app.properties.activeDocument;
+	if (!_doc || !_doc.isValid) {
+		return [0, 0];
+	}
+
+	var _bookmarkCounter = 0;
+	var _errorCounter = 0;
+
+	var _grepMatchArray = __findGREP(_doc, { "findWhat": _grep }, "forward");
+	if (_grepMatchArray.length === 0) {
+		return [0, 0];
+	}
+
+	_global["progressbar"].init(0, _grepMatchArray.length, localize(_global.addBookmarksLabel), "");
+
+	/* Loop: Matches for GREP */
+	for (var m = _grepMatchArray.length - 1; m >= 0; m -= 1) {
+
+		var _keyState = ScriptUI.environment.keyboardState;
+		if (_keyState.keyName == "Escape") {
+			_global["progressbar"].close();
+			break;
+		}
+
+		var _grepMatch = _grepMatchArray[m];
+		if (!_grepMatch || !_grepMatch.hasOwnProperty("contents") || !_grepMatch.isValid) {
+			continue;
+		}
+
+		_global["progressbar"].setLabel(String(_grepMatch.contents));
+		_global["progressbar"].step();
+
+		var _wasBookmarkAdded = __addBookmark(_doc, _grepMatch, _parentBookmark);
+		if (_wasBookmarkAdded) {
+			_bookmarkCounter += 1;
+		} else {
+			_errorCounter += 1;
+		}
+	}
+
+	_global["progressbar"].close();
+
+	return [
+		_bookmarkCounter,
+		_errorCounter
+	];
 }
 
 
@@ -1052,6 +1091,7 @@ function __findGREP(_place, _findPropObj, _mode) {
 	try {
 
 		app.findGrepPreferences.properties = _findPropObj;
+
 		_resultArray = _place.findGrep(_reverseOrder);
 
 	} catch (_error) {
@@ -1064,88 +1104,6 @@ function __findGREP(_place, _findPropObj, _mode) {
 
 	return _resultArray;
 }
-
-
-/**
- * Make condition
- * @returns {Condition}
- */
-function __makeCondition() {
-
-	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-		return false;
-	}
-
-	var _doc = app.activeDocument;
-	if (!_doc.isValid) {
-		return false;
-	}
-
-	var _bookmarkCondition = _doc.conditions.itemByName(":::Bookmark:::");
-	if (!_bookmarkCondition.isValid) {
-		_bookmarkCondition = _doc.conditions.add({
-			name: ":::Bookmark:::",
-			indicatorColor: [200, 200, 200],
-			indicatorMethod: ConditionIndicatorMethod.USE_HIGHLIGHT
-		});
-	}
-
-	return _bookmarkCondition;
-}
-
-
-/**
- * Delete condition
- * @returns {boolean}
- */
-function __deleteCondition() {
-
-	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-		return false;
-	}
-
-	var _doc = app.activeDocument;
-	if (!_doc.isValid) {
-		return false;
-	}
-
-	var _targetCondition = _doc.conditions.itemByName(":::Bookmark:::");
-	if (!_targetCondition.isValid) {
-		return false;
-	}
-
-	try {
-		_targetCondition.remove();
-	} catch (_error) {
-		alert(_error.message);
-	}
-
-	return;
-}
-
-
-/**
- * Warning message 
- * If the document already contains conditions for conditional text.
- * @returns 
- */
-function __alertConditionalText() {
-
-	if (!_global) {
-		return false;
-	}
-	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-		return false;
-	}
-
-	var _doc = app.activeDocument;
-	if (_doc.conditions.length > 0) {
-		return confirm(localize(_global.conditionAlert));
-	}
-
-	return true;
-}
-
 
 
 /**
