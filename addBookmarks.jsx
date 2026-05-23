@@ -127,7 +127,6 @@ function __showDialog() {
 	_pStyleLevel1Listbox.minimumSize.width = 480;
 	_pStyleLevel1Listbox.maximumSize.width = 1000;
 
-
 	var _pStyleLevel2ListboxOptions = { "numberOfColumns": 3, "showHeaders": true, "columnTitles": [localize(_global.level2Label), "PDF", "ePub"], "multiselect": true };
 	var _pStyleLevel2Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
 	_pStyleLevel2Listbox.maximumSize.height = 141;
@@ -166,15 +165,24 @@ function __showDialog() {
 	_parentBookmarkDropdown.visible = false;
 
 	/* Button group */
-	var _cancelButtonGroup = _ui.add("group");
-	_cancelButtonGroup.orientation = "column";
-	_cancelButtonGroup.alignChildren = ["left", "top"];
-	var _startButton = _cancelButtonGroup.add("button", undefined, localize(_global.startButtonLabel), { name: "ok" });
+	var _actionButtonGroup = _ui.add("group");
+	_actionButtonGroup.orientation = "column";
+	_actionButtonGroup.alignChildren = "fill";
+
+	var _startButton = _actionButtonGroup.add("button", undefined, localize(_global.startButtonLabel), { name: "ok" });
 	_startButton.minimumSize.height = 30;
 	_startButton.minimumSize.width = 100;
-	var _cancelButton = _cancelButtonGroup.add("button", undefined, localize(_global.cancelButtonLabel), { name: "cancel" });
+	_startButton.alignment = ["right", "top"];
+
+	var _refreshButton = _actionButtonGroup.add("button", undefined, localize(_global.refreshButtonLabel));
+	_refreshButton.minimumSize.height = 30;
+	_refreshButton.minimumSize.width = 100;
+	_refreshButton.alignment = ["right", "top"];
+
+	var _cancelButton = _actionButtonGroup.add("button", undefined, localize(_global.cancelButtonLabel), { name: "cancel" });
 	_cancelButton.minimumSize.height = 30;
 	_cancelButton.minimumSize.width = 100;
+	_cancelButton.alignment = ["right", "top"];
 
 
 	/**
@@ -182,27 +190,28 @@ function __showDialog() {
 	 */
 	/* Paragraph styles */
 	_pStyleLevel1Listbox.onChange = function () {
-		if (this.selection) {
-			_pStyleLevel2Listbox.enabled = true;
+		if (_pStyleLevel1Listbox.selection) {
+			_pStyleLevel2Listbox.visible = true;
+			__deselectStylesListboxItems(_pStyleLevel2Listbox, this.selection);
+			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
+			__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
 		} else {
-			_pStyleLevel2Listbox.enabled = false;
+			_pStyleLevel2Listbox.visible = false;
 			_pStyleLevel2Listbox.selection = null;
-			_pStyleLevel3Listbox.enabled = false;
-			_pStyleLevel3Listbox.selection = null;
-		}
-	};
-	_pStyleLevel2Listbox.onChange = function () {
-		if (this.selection) {
-			_pStyleLevel3Listbox.enabled = true;
-		} else {
-			_pStyleLevel3Listbox.enabled = false;
+			_pStyleLevel3Listbox.visible = false;
 			_pStyleLevel3Listbox.selection = null;
 		}
 	};
 
-	/* Character styles */
-	_cStyleDropDown.onActivate = function () {
-		__fillStylesDropDown(_cStyleDropDown, "character styles");
+	_pStyleLevel2Listbox.onChange = function () {
+		if (_pStyleLevel2Listbox.selection) {
+			_pStyleLevel3Listbox.visible = true;
+			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
+			__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
+		} else {
+			_pStyleLevel3Listbox.visible = false;
+			_pStyleLevel3Listbox.selection = null;
+		}
 	};
 
 
@@ -266,12 +275,23 @@ function __showDialog() {
 	};
 
 
-	/* Cancel dialog */
+	/* Refresh dialog */
+	_refreshButton.onClick = function () {
+		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles");
+		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles");
+		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles");
+		__fillStylesDropDown(_cStyleDropDown, "character styles");
+		_pStyleLevel2Listbox.visible = false;
+		_pStyleLevel3Listbox.visible = false;
+		_grepInputField.text = "";
+	};
+
+
+	/* Close dialog */
 	_cancelButton.onClick = function () {
 		_ui.close();
 	};
 
-	/* Close dialog */
 	_ui.onClose = function () {
 		if (!!_global && _global.hasOwnProperty("progressbar")) {
 			_global["progressbar"].close();
@@ -286,11 +306,15 @@ function __showDialog() {
 	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles");
 	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles");
 	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles");
+	__fillStylesDropDown(_cStyleDropDown, "character styles");
 
-	_pStyleLevel2Listbox.enabled = false;
-	_pStyleLevel3Listbox.enabled = false;
+	_pStyleLevel2Listbox.visible = false;
+	_pStyleLevel3Listbox.visible = false;
 
-	/* Show dialog */
+
+	/**
+	 * Show dialog
+	 */
 	_ui.show();
 
 	return;
@@ -352,6 +376,53 @@ function __fillStylesListbox(_listbox, _styleType) {
 		_listItem.subItems[1].text = _epubExportTag;
 
 		_listItem.style = _style;
+	}
+}
+
+
+/**
+ * Deselect styles listbox items
+ * @param {ListBox} _listbox 
+ * @param {Array} _selectionArray 
+ * @returns 
+ */
+function __deselectStylesListboxItems(_listbox, _selectionArray) {
+
+	if (!_listbox || !(_listbox instanceof ListBox)) {
+		return null;
+	}
+	if (!_selectionArray || !(_selectionArray instanceof Array)) {
+		return;
+	}
+
+	var _listboxItemArray = _listbox.items;
+
+	for (var i = 0; i < _listboxItemArray.length; i += 1) {
+
+		var _listboxItem = _listboxItemArray[i];
+		if (!_listboxItem) {
+			continue;
+		}
+
+		var _isSelected = false;
+
+		for (var s = 0; s < _selectionArray.length; s += 1) {
+			var _selectedItem = _selectionArray[s];
+			if (!_selectedItem) {
+				continue;
+			}
+			if (_listboxItem.style === _selectedItem.style) {
+				_isSelected = true;
+				break;
+			}
+		}
+
+		if (_isSelected) {
+			_listboxItem.selected = false;
+			_listboxItem.enabled = false;
+		} else {
+			_listboxItem.enabled = true;
+		}
 	}
 }
 
@@ -1212,6 +1283,16 @@ function __defLocalizeStrings() {
 	_global.cancelButtonLabel = {
 		en: "Close",
 		de: "Schlie\u00dfen"
+	}
+
+	_global.refreshButtonLabel = {
+		en: "Refresh",
+		de: "Refresh"
+	}
+
+	_global.clearButtonLabel = {
+		en: "Clear",
+		de: "Leeren"
 	}
 
 	_global.anchorLabel = {
