@@ -113,7 +113,7 @@ function __showDialog() {
 
 	var _tabPanel = _mainGroup.add("tabbedpanel");
 	_tabPanel.alignChildren = ["fill", "fill"];
-	_tabPanel.margins = [8, 8, 0, 8];
+	_tabPanel.margins = [8, 8, 0, 4];
 
 
 	/* Paragraph Styles */
@@ -138,6 +138,11 @@ function __showDialog() {
 	_pStyleLevel3Listbox.maximumSize.height = 141;
 	_pStyleLevel1Listbox.minimumSize.width = 480;
 	_pStyleLevel1Listbox.maximumSize.width = 1000;
+
+	var _pStyleActionButtonGroup = _pStyleTab.add("group");
+	_pStyleActionButtonGroup.margins.top = 10;
+	var _selectPDFHeadings = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
+	var _selectEPUBHeadings = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectEPUBHeadingsButtonLabel));
 
 	/* Character Styles */
 	var _cStyleTab = _tabPanel.add("tab", undefined, "Character Styles");
@@ -170,19 +175,13 @@ function __showDialog() {
 	_actionButtonGroup.alignChildren = "fill";
 
 	var _startButton = _actionButtonGroup.add("button", undefined, localize(_global.startButtonLabel), { name: "ok" });
-	_startButton.minimumSize.height = 30;
-	_startButton.minimumSize.width = 100;
-	_startButton.alignment = ["right", "top"];
+	_startButton.alignment = ["fill", "top"];
 
 	var _refreshButton = _actionButtonGroup.add("button", undefined, localize(_global.refreshButtonLabel));
-	_refreshButton.minimumSize.height = 30;
-	_refreshButton.minimumSize.width = 100;
-	_refreshButton.alignment = ["right", "top"];
+	_refreshButton.alignment = ["fill", "top"];
 
 	var _cancelButton = _actionButtonGroup.add("button", undefined, localize(_global.cancelButtonLabel), { name: "cancel" });
-	_cancelButton.minimumSize.height = 30;
-	_cancelButton.minimumSize.width = 100;
-	_cancelButton.alignment = ["right", "top"];
+	_cancelButton.alignment = ["fill", "top"];
 
 
 	/**
@@ -212,6 +211,18 @@ function __showDialog() {
 			_pStyleLevel3Listbox.visible = false;
 			_pStyleLevel3Listbox.selection = null;
 		}
+	};
+
+	_selectPDFHeadings.onClick = function () {
+		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1, "PDF");
+		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2, "PDF");
+		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3, "PDF");
+	};
+
+	_selectEPUBHeadings.onClick = function () {
+		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1, "EPUB");
+		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2, "EPUB");
+		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3, "EPUB");
 	};
 
 
@@ -422,6 +433,61 @@ function __deselectStylesListboxItems(_listbox, _selectionArray) {
 			_listboxItem.enabled = false;
 		} else {
 			_listboxItem.enabled = true;
+		}
+	}
+}
+
+
+/**
+ * Select istbox items
+ * @param {ListBox} _listbox 
+ * @param {Number} _level 
+ * @param {String} _type 
+ * @returns {boolean}
+ */
+function __selectListboxItemsByExportTags(_listbox, _level, _type) {
+
+	if (!_listbox || !(_listbox instanceof ListBox)) {
+		return false;
+	}
+	if (!_level || typeof _level !== "number" || _level < 1 || _level > 6) {
+		return false;
+	}
+	if (_type !== "PDF" && _type !== "EPUB") {
+		return false;
+	}
+
+	/* Reset */
+	_listbox.selection = null;
+
+	var _listboxItemArray = _listbox.items;
+
+	for (var i = 0; i < _listboxItemArray.length; i += 1) {
+
+		var _listboxItem = _listboxItemArray[i];
+		if (!_listboxItem) {
+			continue;
+		}
+
+		var shouldBeSelected = false;
+
+		switch (_type) {
+			case "PDF":
+				if (_listboxItem.subItems[0].text === "H" + _level) {
+					shouldBeSelected = true;
+				}
+				break;
+			case "EPUB":
+				if (_listboxItem.subItems[1].text === "h" + _level) {
+					shouldBeSelected = true;
+				}
+				break;
+			default:
+				continue;
+		}
+
+		if (shouldBeSelected) {
+			_listboxItem.selected = true;
 		}
 	}
 }
@@ -1241,8 +1307,8 @@ function __createProgressbar() {
 function __defLocalizeStrings() {
 
 	_global.addBookmarks = {
-		en: "Add Bookmarks 1.1",
-		de: "Add Bookmarks 1.1"
+		en: "Add Bookmarks 2.0",
+		de: "Add Bookmarks 2.0"
 	}
 
 	_global.goBackLabel = {
@@ -1276,8 +1342,8 @@ function __defLocalizeStrings() {
 	}
 
 	_global.startButtonLabel = {
-		en: "Go",
-		de: "Los"
+		en: "Create",
+		de: "Erstellen"
 	}
 
 	_global.cancelButtonLabel = {
@@ -1287,7 +1353,7 @@ function __defLocalizeStrings() {
 
 	_global.refreshButtonLabel = {
 		en: "Refresh",
-		de: "Refresh"
+		de: "Aktualisieren"
 	}
 
 	_global.clearButtonLabel = {
@@ -1313,6 +1379,16 @@ function __defLocalizeStrings() {
 	_global.level3Label = {
 		en: "Level 3",
 		de: "Ebene 3"
+	}
+
+	_global.selectPDFHeadingsButtonLabel = {
+		en: "Select PDF Headings",
+		de: "PDF-Überschriften auswählen"
+	}
+
+	_global.selectEPUBHeadingsButtonLabel = {
+		en: "Select ePub Headings",
+		de: "ePub-Überschriften auswählen"
 	}
 
 	_global.bookmarksAddedAlert = {
