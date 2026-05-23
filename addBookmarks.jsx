@@ -261,8 +261,9 @@ function __showDialog() {
 		/* Paragraph Style */
 		if (_pStyleLevel1Listbox.visible == true) {
 			if (!!_pStyleLevel1Listbox.selection) {
-		// _argsArray = [[_pStyleLevel1Listbox.selection], _parentBookmark];
-		// _addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
+				var _selectedPStyleArray = __getSelectedStyles([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox]);
+				_argsArray = [_selectedPStyleArray, _parentBookmark];
+				_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 			}
 		}
 
@@ -295,6 +296,7 @@ function __showDialog() {
 		_pStyleLevel2Listbox.visible = false;
 		_pStyleLevel3Listbox.visible = false;
 		_grepInputField.text = "";
+		_ui.text = localize(_global.addBookmarks);
 	};
 
 
@@ -490,6 +492,51 @@ function __selectListboxItemsByExportTags(_listbox, _level, _type) {
 			_listboxItem.selected = true;
 		}
 	}
+}
+
+
+/**
+ * Get selected styles
+ * @param {Array} _pStyleLevel1Listbox 
+ * @returns {Array}
+ */
+function __getSelectedStyles(_listboxArray) {
+
+	if (!_listboxArray || !(_listboxArray instanceof Array)) {
+		return [];
+	}
+
+	var _styleArray = [];
+
+	for (var i = 0; i < _listboxArray.length; i += 1) {
+
+		var _listbox = _listboxArray[i];
+		if (!_listbox || !(_listbox instanceof ListBox)) {
+			continue;
+		}
+
+		var _listboxSelection = _listbox.selection;
+		if (!_listboxSelection) {
+			continue;
+		}
+
+		for (var j = 0; j < _listboxSelection.length; j += 1) {
+
+			var _listboxItem = _listboxSelection[j];
+			if (!_listboxItem) {
+				continue;
+			}
+
+			var _style = _listboxItem.style;
+			if (!_style || !(_style instanceof Object) || !_style.isValid) {
+				continue;
+			}
+
+			_styleArray.push(_style);
+		}
+	}
+
+	return _styleArray;
 }
 
 
