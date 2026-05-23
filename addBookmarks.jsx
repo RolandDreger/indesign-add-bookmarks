@@ -100,145 +100,111 @@ function __showDialog() {
 		return;
 	}
 
-	var _icons = __defineIconsForUI();
-
 	var _ui = new Window("palette", localize(_global.addBookmarks));
-	with (_ui) {
-		orientation = "row";
-		alignChildren = ["fill", "fill"];
-		spacing = 50;
-		var _mainGroup = add("group");
-		with (_mainGroup) {
-			orientation = "column";
-			spacing = 0;
-			alignChildren = ["fill", "fill"];
-			var _optionsButtonGroup = add("group");
-			with (_optionsButtonGroup) {
-				var _pStyleButton = add("button", undefined, localize(_global.pStyleButtonLabel));
-				with (_pStyleButton) {
-					minimumSize.height = 30;
-					minimumSize.width = 120;
-				} /* END _pStyleButton */
-				var _cStyleButton = add("button", undefined, localize(_global.cStyleButtonLabel));
-				with (_cStyleButton) {
-					minimumSize.height = 30;
-					minimumSize.width = 120;
-				} /* END _cStyleButton */
-				var _grepButton = add("button", undefined, localize(_global.grepButtonLabel));
-				with (_grepButton) {
-					minimumSize.height = 30;
-					minimumSize.width = 120;
-				} /* END _grepButton */
-			} /* END _optionsButtonGroup */
-			var _arrowGroup = add("group");
-			with (_arrowGroup) {
-				alignChildren = ["fill", "fill"];
-				var _arrowPStyleGroup = add("group");
-				with (_arrowPStyleGroup) {
-					alignChildren = ["center", "bottom"];
-					var _arrowPStyle = add("image", undefined, _icons.arrow);
-					with (_arrowPStyle) {
-						visible = false;
-					} /* END _arrowPStyle */
-				} /* END _arrowPStyleGroup */
-				var _arrowCStyleGroup = add("group");
-				with (_arrowCStyleGroup) {
-					alignChildren = ["center", "bottom"];
-					var _arrowCStyle = add("image", undefined, _icons.arrow);
-					with (_arrowCStyle) {
-						visible = false;
-					} /* END _arrowCStyle */
-				} /* END _arrowCStyleGroup */
-				var _arrowGrepGroup = add("group");
-				with (_arrowGrepGroup) {
-					alignChildren = ["center", "bottom"];
-					var _arrowGrep = add("image", undefined, _icons.arrow);
-					with (_arrowGrep) {
-						visible = false;
-					} /* END _arrowGrep */
-				} /* END _arrowGrepGroup */
-			} /* END _optionsButtonGroup */
-			var _inputGroup = add("group");
-			with (_inputGroup) {
-				orientation = "stack";
-				margins = [10, 10, 10, 10];
-				alignChildren = ["fill", "fill"];
-				graphics.backgroundColor = graphics.newBrush(graphics.BrushType.SOLID_COLOR, [0.8, 0.8, 0.8], 1);
-				var _placeholder = add("statictext", undefined, localize(_global.placeholder));
-				with (_placeholder) {
-					graphics.foregroundColor = graphics.newPen(graphics.PenType.SOLID_COLOR, [0.4, 0.4, 0.38], 1);
-				}
-				var _pStyleDropDown = add("dropdownlist", undefined, []);
-				with (_pStyleDropDown) {
-					visible = false;
-				} /* END _cStyleDropDown */
-				var _cStyleDropDown = add("dropdownlist", undefined, []);
-				with (_cStyleDropDown) {
-					visible = false;
-				} /* END _cStyleDropDown */
-				var _grepInputField = add("edittext", undefined, "", { multiline: false });
-				with (_grepInputField) {
-					visible = false;
-				} /* END _grepInputField */
-			}
-			var _parentBookmarkGroup = add("group");
-			with (_parentBookmarkGroup) {
-				margins = [10, 20, 10, 0];
-				alignChildren = ["fill", "bottom"];
-				spacing = 0;
-				var _parentBookmarkCheck = add("checkbox", undefined, localize(_global.parentBookmarkCheckboxLabel));
-				with (_parentBookmarkCheck) {
-					value = false;
-				} /* END _parentBookmarkCheck */
-				var _parentBookmarkDropdown = add("dropdownlist", undefined, undefined);
-				with (_parentBookmarkDropdown) {
-					preferredSize.width = 140;
-					visible = false;
-				} /* END _parentBookmarkDropdown */
-			} /* END _parentBookmarkGroup */
+	_ui.orientation = "row";
+	_ui.alignChildren = ["fill", "fill"];
+	_ui.spacing = 15;
 
-		} /* END _mainGroup */
-		var _cancelButtonGroup = add("group");
-		with (_cancelButtonGroup) {
-			orientation = "column";
-			alignChildren = ["left", "top"];
-			var _startButton = add("button", undefined, localize(_global.startButtonLabel), { name: "ok" });
-			with (_startButton) {
-				minimumSize.height = 30;
-				minimumSize.width = 100;
-			}
-			var _cancelButton = add("button", undefined, localize(_global.cancelButtonLabel), { name: "cancel" });
-			with (_cancelButton) {
-				minimumSize.height = 30;
-				minimumSize.width = 100;
-			}
-		} /* END _cancelButtonGroup */
-	}
+	/* Main group */
+	var _mainGroup = _ui.add("group");
+	_mainGroup.orientation = "column";
+	_mainGroup.spacing = 0;
+	_mainGroup.alignChildren = ["fill", "fill"];
+
+	var _tabPanel = _mainGroup.add("tabbedpanel");
+	_tabPanel.alignChildren = ["fill", "fill"];
+	_tabPanel.margins = [8, 8, 0, 8];
+
+
+	/* Paragraph Styles */
+	var _pStyleTab = _tabPanel.add("tab", undefined, "Paragaph Styles");
+	_pStyleTab.alignChildren = "fill";
+	_pStyleTab.spacing = 15;
+
+	var _pStyleLevel1ListboxOptions = { "numberOfColumns": 3, "showHeaders": true, "columnTitles": [localize(_global.level1Label), "PDF", "ePub"], "multiselect": true };
+	var _pStyleLevel1Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
+	_pStyleLevel1Listbox.maximumSize.height = 141;
+	_pStyleLevel1Listbox.minimumSize.width = 480;
+	_pStyleLevel1Listbox.maximumSize.width = 1000;
+
+
+	var _pStyleLevel2ListboxOptions = { "numberOfColumns": 3, "showHeaders": true, "columnTitles": [localize(_global.level2Label), "PDF", "ePub"], "multiselect": true };
+	var _pStyleLevel2Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
+	_pStyleLevel2Listbox.maximumSize.height = 141;
+	_pStyleLevel1Listbox.minimumSize.width = 480;
+	_pStyleLevel1Listbox.maximumSize.width = 1000;
+
+	var _pStyleLevel3ListboxOptions = { "numberOfColumns": 3, "showHeaders": true, "columnTitles": [localize(_global.level3Label), "PDF", "ePub"], "multiselect": true };
+	var _pStyleLevel3Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel3ListboxOptions);
+	_pStyleLevel3Listbox.maximumSize.height = 141;
+	_pStyleLevel1Listbox.minimumSize.width = 480;
+	_pStyleLevel1Listbox.maximumSize.width = 1000;
+
+	/* Character Styles */
+	var _cStyleTab = _tabPanel.add("tab", undefined, "Character Styles");
+	_cStyleTab.alignChildren = "fill";
+
+	var _cStyleDropDown = _cStyleTab.add("dropdownlist", undefined, []);
+
+	/* GREP */
+	var _grepTab = _tabPanel.add("tab", undefined, "GREP");
+	_grepTab.alignChildren = "fill";
+
+	var _grepInputField = _grepTab.add("edittext", undefined, "", { multiline: false });
+
+	/* Parent Bookmark */
+	var _parentBookmarkGroup = _mainGroup.add("group");
+	_parentBookmarkGroup.margins = [15, 20, 15, 0];
+	_parentBookmarkGroup.alignChildren = ["left", "bottom"];
+	_parentBookmarkGroup.spacing = 20;
+
+	var _parentBookmarkCheck = _parentBookmarkGroup.add("checkbox", undefined, localize(_global.parentBookmarkCheckboxLabel));
+	_parentBookmarkCheck.value = false;
+
+	var _parentBookmarkDropdown = _parentBookmarkGroup.add("dropdownlist", undefined, undefined);
+	_parentBookmarkDropdown.preferredSize.width = 140;
+	_parentBookmarkDropdown.visible = false;
+
+	/* Button group */
+	var _cancelButtonGroup = _ui.add("group");
+	_cancelButtonGroup.orientation = "column";
+	_cancelButtonGroup.alignChildren = ["left", "top"];
+	var _startButton = _cancelButtonGroup.add("button", undefined, localize(_global.startButtonLabel), { name: "ok" });
+	_startButton.minimumSize.height = 30;
+	_startButton.minimumSize.width = 100;
+	var _cancelButton = _cancelButtonGroup.add("button", undefined, localize(_global.cancelButtonLabel), { name: "cancel" });
+	_cancelButton.minimumSize.height = 30;
+	_cancelButton.minimumSize.width = 100;
 
 
 	/**
 	 *  Callbacks
 	 */
 	/* Paragraph styles */
-	_pStyleButton.onClick = function () {
-		__showSelectedItem(this, _inputGroup, _arrowGroup);
-	}
-	_pStyleDropDown.onActivate = function () {
-		__fillStylesDropDown(_pStyleDropDown, "paragraph styles");
-	}
+	_pStyleLevel1Listbox.onChange = function () {
+		if (this.selection) {
+			_pStyleLevel2Listbox.enabled = true;
+		} else {
+			_pStyleLevel2Listbox.enabled = false;
+			_pStyleLevel2Listbox.selection = null;
+			_pStyleLevel3Listbox.enabled = false;
+			_pStyleLevel3Listbox.selection = null;
+		}
+	};
+	_pStyleLevel2Listbox.onChange = function () {
+		if (this.selection) {
+			_pStyleLevel3Listbox.enabled = true;
+		} else {
+			_pStyleLevel3Listbox.enabled = false;
+			_pStyleLevel3Listbox.selection = null;
+		}
+	};
 
 	/* Character styles */
-	_cStyleButton.onClick = function () {
-		__showSelectedItem(this, _inputGroup, _arrowGroup);
-	}
 	_cStyleDropDown.onActivate = function () {
 		__fillStylesDropDown(_cStyleDropDown, "character styles");
-	}
+	};
 
-	/* GREP */
-	_grepButton.onClick = function () {
-		__showSelectedItem(this, _inputGroup, _arrowGroup);
-	}
 
 	/* Parent bookmark */
 	_parentBookmarkCheck.onClick = function () {
@@ -248,10 +214,10 @@ function __showDialog() {
 		} else {
 			_parentBookmarkDropdown.hide();
 		}
-	}
+	};
 	_parentBookmarkDropdown.onActivate = function () {
 		__fillParentBookmarkDropdown(_parentBookmarkDropdown);
-	}
+	};
 
 	/* Start */
 	_startButton.onClick = function () {
@@ -273,10 +239,10 @@ function __showDialog() {
 		var _argsArray = [];
 
 		/* Paragraph Style */
-		if (_pStyleDropDown.visible == true) {
-			if (!!_pStyleDropDown.selection) {
-				_argsArray = [[_pStyleDropDown.selection.style], _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
+		if (_pStyleLevel1Listbox.visible == true) {
+			if (!!_pStyleLevel1Listbox.selection) {
+		// _argsArray = [[_pStyleLevel1Listbox.selection], _parentBookmark];
+		// _addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 			}
 		}
 
@@ -297,23 +263,13 @@ function __showDialog() {
 		}
 
 		_ui.text = __buildResultString(_addedBookmarks);
-	}
+	};
 
-	/* Input group (background color) */
-	if (app.scriptPreferences.version < 9) {
-		_inputGroup.onDraw = function () {
-			with (_inputGroup) {
-				var _fillBrushInputGroup = graphics.newBrush(graphics.BrushType.SOLID_COLOR, [0.8, 0.8, 0.8, 1]);
-				graphics.rectPath(0, 0, size[0], size[1]);
-				graphics.fillPath(_fillBrushInputGroup);
-			}
-		}
-	}
 
 	/* Cancel dialog */
 	_cancelButton.onClick = function () {
 		_ui.close();
-	}
+	};
 
 	/* Close dialog */
 	_ui.onClose = function () {
@@ -321,13 +277,20 @@ function __showDialog() {
 			_global["progressbar"].close();
 		}
 		_global = null;
-	}
+	};
+
+
+	/**
+	 * Init dialog
+	 */
+	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles");
+	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles");
+	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles");
+
+	_pStyleLevel2Listbox.enabled = false;
+	_pStyleLevel3Listbox.enabled = false;
 
 	/* Show dialog */
-	_ui.onShow = function () {
-		_pStyleButton.notify();
-	}
-
 	_ui.show();
 
 	return;
@@ -335,36 +298,60 @@ function __showDialog() {
 
 
 /**
- * Show selected input group
- * @param {*} _clickedButton 
+ * Fill style listbox
+ * @param {ListBox} _listbox 
+ * @param {Array} _styleArray 
+ * @param {string} _styleType 
  * @returns 
  */
-function __showSelectedItem(_clickedButton, _inputGroup, _arrowGroup) {
+function __fillStylesListbox(_listbox, _styleType) {
 
-	if (!_clickedButton || !(_clickedButton instanceof Button)) {
-		return;
+	if (!_listbox || !(_listbox instanceof ListBox)) {
+		return null;
 	}
-	if (!_inputGroup || !(_inputGroup instanceof Group)) {
-		return;
-	}
-	if (!_arrowGroup || !(_arrowGroup instanceof Group)) {
+	if (!_styleType || typeof _styleType !== "string") {
 		return;
 	}
 
-	_inputGroup.children[0].visible = false;
+	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		return;
+	}
 
-	var _selectedItem;
-	var _inputGroupChildren = _inputGroup.children;
+	var _doc = app.activeDocument;
+	if (!document.isValid) {
+		return;
+	}
 
-	for (var i = 0; i < _clickedButton.parent.children.length; i++) {
-		if (_clickedButton.parent.children[i] === _clickedButton) {
-			_selectedItem = _inputGroupChildren[i + 1];
-			_selectedItem.visible = true;
-			_arrowGroup.children[i].children[0].visible = true;
-		} else {
-			_inputGroupChildren[i + 1].visible = false;
-			_arrowGroup.children[i].children[0].visible = false;
+	var _styleObjArray = __getAllStyles(_doc, _styleType);
+
+	_listbox.removeAll();
+
+	for (var s = 0; s < _styleObjArray.length; s += 1) {
+
+		var _styleObj = _styleObjArray[s];
+		if (!_styleObj) {
+			continue;
 		}
+		var _stylePathArray = _styleObj.path;
+		var _style = _styleObj.style;
+		if (!_stylePathArray || !_style || !_style.isValid) {
+			continue;
+		}
+
+		var _stylePath = _stylePathArray.join(" → ");
+
+		var _listItem = _listbox.add("item", _stylePath);
+		if (!_listItem) {
+			continue;
+		}
+
+		var _pdfExportTag = _styleObj.pdfExportTag || "";
+		var _epubExportTag = _styleObj.epubExportTag || "";
+
+		_listItem.subItems[0].text = _pdfExportTag;
+		_listItem.subItems[1].text = _epubExportTag;
+
+		_listItem.style = _style;
 	}
 }
 
@@ -434,7 +421,7 @@ function __fillStylesDropDown(_dropDown, _styleType) {
  * Get all styles
  * @param { Document } _doc 
  * @param { "paragraph style" | "character styles" | "object styles" | "table styles" | "cell styles" } _styleType 
- * @returns { Array<{"path": Array<string>, "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle }> }
+ * @returns { Array<{"path": Array<string>, "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "pdfExportTag": string, "epubExportTag": string }> }
  */
 function __getAllStyles(_doc, _styleType) {
 
@@ -483,14 +470,37 @@ function __getAllStyles(_doc, _styleType) {
 	var _allStylesArray = _doc[_allStylesPropertyName];
 
 	for (var i = _startIndex; i < _allStylesArray.length; i += 1) {
+
 		var _style = _allStylesArray[i];
 		if (!_style || !_style.isValid) {
 			continue;
 		}
+
+		var _pdfExportTag = "";
+		var _epubExportTag = "";
+		var _styleExportTagMapArray = _style.styleExportTagMaps;
+
+		for (var e = 0; e < _styleExportTagMapArray.length; e += 1) {
+			var _styleExportTagMap = _styleExportTagMapArray[e];
+			if (!_styleExportTagMap) {
+				continue;
+			}
+			var _exportType = _styleExportTagMap.exportType;
+			var _exportTag = _styleExportTagMap.exportTag || "";
+			if (_exportType === "PDF") {
+				_pdfExportTag = _exportTag;
+			}
+			else if (_exportType === "EPUB") {
+				_epubExportTag = _exportTag;
+			}
+		}
+
 		var _stylePathArray = __getStyleName(_style, [_style.name], _styleGroupInstance);
 		_styleObjArray.push({
 			"path": _stylePathArray,
-			"style": _style
+			"style": _style,
+			"pdfExportTag": _pdfExportTag,
+			"epubExportTag": _epubExportTag
 		});
 	}
 
@@ -1151,15 +1161,6 @@ function __createProgressbar() {
 
 
 
-/**
- * Icons for UI
- * @returns { string }
- */
-function __defineIconsForUI() {
-	return {
-		arrow: "\u0089PNG\r\n\x1A\n\x00\x00\x00\rIHDR\x00\x00\x00\x18\x00\x00\x00\x0B\b\x06\x00\x00\x00e5M\u00CD\x00\x00\x00\x19tEXtSoftware\x00Adobe ImageReadyq\u00C9e<\x00\x00\x00\u00A5IDATx\u00DAb<s\u00E6\f\x03\u0091\u0080\x11\u0088;\u00A0t9\x10\u00FF'F\x13\x0B\u0091\u00863\x03\u00F1l N\u0084\u00F2E\u00808\x15\u0088\u00FF\x12\u00D2\u00C8D\u0084\u00E1\u009C@\u00BC\x0E\u00C9p\x06({\x1DT\u008E\"\x0B\x04\u0080x;\x10\u00FBa\u0091\u00F3\u0083\u00CA\t\u0090k\u0081\x04\x10\u00EF\x07b{<j\u00EC\u00A1j$H\u00B5@\t\u0088\u008F\x02\u00B1\x01\x11Ah\x00U\u00ABD\u00AC\x05\u00FA\u00F84\x10p\u0090>!\x0B@^>\u0080\u00CF\u00CB\x04\u0082\u00F4\x00z\u00902\u0091\x1Ai\u00A4&\n\u0098\x05\t\u00C4&;\x12\u0092u\x02,\u00A3\u0095\x02q'4\u0087R\x0B\u00802\u00E6<P\u0086\x04\b0\x00\x18\u00B6\x1A\r\u0081\x03\u00BA\u00C5\x00\x00\x00\x00IEND\u00AEB`\u0082"
-	}
-} /* END function __defineIconsForUI */
 
 
 
@@ -1216,6 +1217,21 @@ function __defLocalizeStrings() {
 	_global.anchorLabel = {
 		en: "Bookmark",
 		de: "Lesezeichen"
+	}
+
+	_global.level1Label = {
+		en: "Level 1",
+		de: "Ebene 1"
+	}
+
+	_global.level2Label = {
+		en: "Level 2",
+		de: "Ebene 2"
+	}
+
+	_global.level3Label = {
+		en: "Level 3",
+		de: "Ebene 3"
 	}
 
 	_global.bookmarksAddedAlert = {
