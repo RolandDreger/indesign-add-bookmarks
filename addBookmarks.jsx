@@ -129,7 +129,8 @@ function __showDialog() {
 		"multiselect": true
 	};
 	var _pStyleLevel1Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
-	_pStyleLevel1Listbox.maximumSize.height = 141;
+	_pStyleLevel1Listbox.minimumSize = [640, 141];
+	_pStyleLevel1Listbox.maximumSize = [640, 141];
 
 	var _pStyleLevel2ListboxOptions = {
 		"numberOfColumns": 2,
@@ -139,7 +140,8 @@ function __showDialog() {
 		"multiselect": true
 	};
 	var _pStyleLevel2Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
-	_pStyleLevel2Listbox.maximumSize.height = 141;
+	_pStyleLevel2Listbox.minimumSize = [640, 141];
+	_pStyleLevel2Listbox.maximumSize = [640, 141];
 
 	var _pStyleLevel3ListboxOptions = {
 		"numberOfColumns": 2,
@@ -149,7 +151,8 @@ function __showDialog() {
 		"multiselect": true
 	};
 	var _pStyleLevel3Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel3ListboxOptions);
-	_pStyleLevel3Listbox.maximumSize.height = 141;
+	_pStyleLevel3Listbox.minimumSize = [640, 141];
+	_pStyleLevel3Listbox.maximumSize = [640, 141];
 
 	var _pStyleActionButtonGroup = _pStyleTab.add("group");
 	_pStyleActionButtonGroup.margins.top = 10;
@@ -252,6 +255,7 @@ function __showDialog() {
 	_startButton.onClick = function () {
 
 		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+			_ui.text = localize(_global.addBookmarks);
 			return;
 		}
 
@@ -291,6 +295,7 @@ function __showDialog() {
 				}
 				break;
 			default:
+				_ui.text = localize(_global.addBookmarks);
 				break;
 		}
 
@@ -362,11 +367,13 @@ function __fillStylesListbox(_listbox, _styleType) {
 	}
 
 	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
+		_listbox.removeAll();
 		return;
 	}
 
 	var _doc = app.activeDocument;
 	if (!document.isValid) {
+		_listbox.removeAll();
 		return;
 	}
 
