@@ -895,12 +895,88 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 		}
 	}
 
+	if (_bookmarkCounter > 0) {
+		/* Sort bookmarks */
+		var _areBookmarksSorted = __sortBookmarks();
+		/* Nest bookmarks */
+		if (_areBookmarksSorted) {
+			__nestBookmarks(_doc, _parentBookmark);
+		}
+	}
+
 	_global["progressbar"].close();
 
 	return [
 		_bookmarkCounter,
 		_errorCounter
 	];
+}
+
+
+/* Sort bookmarks */
+function __sortBookmarks() {
+
+	try {
+		app.menuActions.itemByID(95498).invoke();
+	} catch (_error) {
+		alert(_error.message);
+	}
+
+	return true;
+}
+
+
+/* Nest bookmarks */
+function __nestBookmarks(_doc, _parent) {
+
+	if (!_doc || !_doc.isValid) {
+		return false;
+	}
+	if (!_parent) {
+		_parent = _doc;
+	}
+
+	var _leve1Bookmark;
+	var _leve2Bookmark;
+
+	var _bookmarkArray = _parent.bookmarks.everyItem().getElements();
+
+	for (var i = 0; i < _bookmarkArray.length; i++) {
+
+		var _bookmark = _bookmarkArray[i];
+		if (!_bookmark || !_bookmark.isValid) {
+			continue;
+		}
+
+		var _pdfHeadingLevel = _bookmark.extractLabel("pdf-heading-level");
+		if (!_pdfHeadingLevel) {
+			continue;
+		}
+
+		switch (_pdfHeadingLevel) {
+			case "1":
+				_leve1Bookmark = _bookmark;
+				break;
+			case "2":
+				_leve2Bookmark = _bookmark;
+				if (_leve1Bookmark && _leve1Bookmark.isValid) {
+					_bookmark.move(LocationOptions.AT_END, _leve1Bookmark);
+				}
+				break;
+			case "3":
+				if (_leve2Bookmark && _leve2Bookmark.isValid) {
+					_bookmark.move(LocationOptions.AT_END, _leve2Bookmark);
+				}
+				break;
+		}
+
+		/* Reset script label */
+		try {
+			_bookmark.insertLabel("pdf-heading-level", "");
+		} catch (_error) { }
+	}
+
+	return true;
 }
 
 
@@ -1139,7 +1215,6 @@ function __getAllBookmarks(_parent, _allBookmarkArray) {
 			continue;
 		}
 
-		_bookmark.insertLabel("fullName", _fullName);
 		_allBookmarkArray.push(_bookmark);
 
 		if (_bookmark.bookmarks.length > 0) {
