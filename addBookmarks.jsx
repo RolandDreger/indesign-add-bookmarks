@@ -1391,131 +1391,131 @@ function __defLocalizeStrings() {
 	_global.addBookmarks = {
 		en: "Add Bookmarks 2.0",
 		de: "Add Bookmarks 2.0"
-	}
+	};
 
 	_global.goBackLabel = {
 		en: "Add Bookmarks",
 		de: "Lesezeichen erstellen"
-	}
+	};
 
 	_global.pStyleButtonLabel = {
 		en: "Paragraph Style",
 		de: "Absatzformat"
-	}
+	};
 
 	_global.cStyleButtonLabel = {
 		en: "Character Style",
 		de: "Zeichenformat"
-	}
+	};
 
 	_global.openBookmarkPanelLabel = {
 		en: "Please open the bookmark panel: Windows → Interactive → Bookmarks",
 		de: "Bitte die Lesezeichen-Palette öffnen: Fenster → Interaktiv → Lesezeichen"
-	}
+	};
 
 	_global.placeholder = {
 		en: "Please select one these options.",
 		de: "Bitte eine der Optionen ausw\u00E4hlen."
-	}
+	};
 
 	_global.grepButtonLabel = {
 		en: "GREP",
 		de: "GREP"
-	}
+	};
 
 	_global.startButtonLabel = {
 		en: "Create",
 		de: "Erstellen"
-	}
+	};
 
 	_global.cancelButtonLabel = {
 		en: "Close",
 		de: "Schlie\u00dfen"
-	}
+	};
 
 	_global.refreshButtonLabel = {
 		en: "Refresh",
 		de: "Aktualisieren"
-	}
+	};
 
 	_global.clearButtonLabel = {
 		en: "Clear",
 		de: "Leeren"
-	}
+	};
 
 	_global.anchorLabel = {
 		en: "Bookmark",
 		de: "Lesezeichen"
-	}
+	};
 
 	_global.level1Label = {
 		en: "Bookmarks Level 1",
 		de: "Lesezeichen Ebene 1"
-	}
+	};
 
 	_global.level2Label = {
 		en: "Bookmarks Level 2",
 		de: "Lesezeichen Ebene 2"
-	}
+	};
 
 	_global.level3Label = {
 		en: "Bookmarks Level 3",
 		de: "Lesezeichen Ebene 3"
-	}
+	};
 
 	_global.pdfExportTagLabel = {
 		en: "Export Tag (PDF)",
 		de: "Export-Tag (PDF)"
-	}
+	};
 
 	_global.selectPDFHeadingsButtonLabel = {
 		en: "Select PDF Headings (PDF)",
 		de: "\u00dcberschriften ausw\u00E4hlen (PDF)"
-	}
+	};
 
 	_global.bookmarksAddedAlert = {
 		en: "Bookmarks added",
 		de: "Lesezeichen erstellt"
-	}
+	};
 
 	_global.refreshBookmarkListDoScriptLabel = {
 		en: "Refresh bookmarks list",
 		de: "Lesezeichen-Liste aktualisieren"
-	}
+	};
 
 	_global.errorsAlert = {
 		en: "Search results skipped",
 		de: "Fundstellen \u00fcbersprungen"
-	}
+	};
 
 	_global.parentBookmarkCheckboxLabel = {
 		en: "Parent Bookmark",
 		de: "\u00dcbergeordnetes Lesezeichen"
-	}
+	};
 
 	_global.cancelWithESCLabel = {
 		en: "Cancel with ESC",
 		de: "Abbrechen mit ESC"
-	}
+	};
 
 	_global.addBookmarksLabel = {
 		en: "Add bookmarks",
 		de: "Lesezeichen hinzufügen"
-	}
+	};
 
 	_global.startButtonHelpText = {
 		en: "Create bookmarks",
 		de: "Lesezeichen erstellen"
-	}
+	};
 
 	_global.refreshButtonHelpText = {
 		en: "Refresh dialog window",
 		de: "Dialogfenster aktualisieren"
-	}
+	};
 
 	_global.cancelButtonHelpText = {
 		en: "Close dialog window",
 		de: "Dialogfenster schlie\u00dfen"
-	}
+	};
 
 }
