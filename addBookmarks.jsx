@@ -393,7 +393,7 @@ function __fillStylesListbox(_listbox, _styleType) {
 			continue;
 		}
 
-		var _pdfExportTag = _styleObj.pdfExportTag || "";
+		var _pdfExportTag = _styleObj.exportTags.pdf || "";
 		_listItem.subItems[0].text = _pdfExportTag;
 
 		_listItem.style = _style;
@@ -596,7 +596,7 @@ function __fillStylesDropDown(_dropDown, _styleType) {
  * Get all styles
  * @param { Document } _doc 
  * @param { "paragraph style" | "character styles" | "object styles" | "table styles" | "cell styles" } _styleType 
- * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "pdfExportTag": string, "epubExportTag": string }> }
+ * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTags": { "pdf": string, "epub": string} }> }
  */
 function __getAllStyles(_doc, _styleType) {
 
@@ -657,8 +657,7 @@ function __getAllStyles(_doc, _styleType) {
 		_styleObjArray.push({
 			"style": _style,
 			"path": _stylePathArray,
-			"pdfExportTag": _exportTagObj.pdf,
-			"epubExportTag": _exportTagObj.epub
+			"exportTags": _exportTagObj
 		});
 	}
 
