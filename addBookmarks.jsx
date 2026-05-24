@@ -187,12 +187,15 @@ function __showDialog() {
 
 	var _startButton = _actionButtonGroup.add("button", undefined, localize(_global.startButtonLabel), { name: "ok" });
 	_startButton.alignment = ["fill", "top"];
+	_startButton.helpTip = localize(_global.startButtonHelpText);
 
 	var _refreshButton = _actionButtonGroup.add("button", undefined, localize(_global.refreshButtonLabel));
 	_refreshButton.alignment = ["fill", "top"];
+	_refreshButton.helpTip = localize(_global.refreshButtonHelpText);
 
 	var _cancelButton = _actionButtonGroup.add("button", undefined, localize(_global.cancelButtonLabel), { name: "cancel" });
 	_cancelButton.alignment = ["fill", "top"];
+	_cancelButton.helpTip = localize(_global.cancelButtonHelpText);
 
 
 	/**
@@ -228,6 +231,7 @@ function __showDialog() {
 		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1);
 		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2);
 		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3);
+		_parentBookmarkCheck.value = false;
 	};
 
 
@@ -1411,7 +1415,7 @@ function __defLocalizeStrings() {
 
 	_global.placeholder = {
 		en: "Please select one these options.",
-		de: "Bitte eine der Optionen auswählen."
+		de: "Bitte eine der Optionen ausw\u00E4hlen."
 	}
 
 	_global.grepButtonLabel = {
@@ -1465,8 +1469,8 @@ function __defLocalizeStrings() {
 	}
 
 	_global.selectPDFHeadingsButtonLabel = {
-		en: "Select PDF Headings",
-		de: "PDF-Überschriften auswählen"
+		en: "Select PDF Headings (PDF)",
+		de: "\u00dcberschriften ausw\u00E4hlen (PDF)"
 	}
 
 	_global.bookmarksAddedAlert = {
@@ -1497,6 +1501,21 @@ function __defLocalizeStrings() {
 	_global.addBookmarksLabel = {
 		en: "Add bookmarks",
 		de: "Lesezeichen hinzufügen"
+	}
+
+	_global.startButtonHelpText = {
+		en: "Create bookmarks",
+		de: "Lesezeichen erstellen"
+	}
+
+	_global.refreshButtonHelpText = {
+		en: "Refresh dialog window",
+		de: "Dialogfenster aktualisieren"
+	}
+
+	_global.cancelButtonHelpText = {
+		en: "Close dialog window",
+		de: "Dialogfenster schlie\u00dfen"
 	}
 
 }
