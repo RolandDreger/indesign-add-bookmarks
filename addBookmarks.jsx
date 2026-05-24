@@ -586,67 +586,6 @@ function __getSelectedStyleObjects(_listboxArray) {
 
 
 /**
- * 
- * @param {DropDownList} _dropDown 
- * @param {string} _styleType 
- * @returns 
- */
-function __fillStylesDropDown(_dropDown, _styleType) {
-
-	if (!_dropDown || !(_dropDown instanceof DropDownList)) {
-		return;
-	}
-	if (!_styleType || typeof _styleType !== "string") {
-		return;
-	}
-
-	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-		return;
-	}
-
-	var _doc = app.activeDocument;
-	if (!document.isValid) {
-		return;
-	}
-
-	var _selectionText = "";
-	if (!!_dropDown.selection) {
-		_selectionText = _dropDown.selection.text;
-	}
-
-	var _styleObjArray = __getAllStyles(_doc, _styleType);
-
-	_dropDown.removeAll();
-
-	for (var i = 0; i < _styleObjArray.length; i++) {
-		var _styleObj = _styleObjArray[i];
-		if (!_styleObj) {
-			continue;
-		}
-		var _stylePathArray = _styleObj.path;
-		var _style = _styleObj.style;
-		if (!_stylePathArray || !_style || !_style.isValid) {
-			continue;
-		}
-		var _stylePath = _stylePathArray.join(" → ");
-		var item = _dropDown.add("item", _stylePath);
-		if (!!item) {
-			item.style = _style;
-		}
-	}
-
-	if (!!_selectionText) {
-		var _targetItem = _dropDown.find(_selectionText);
-		if (!!_targetItem) {
-			_dropDown.selection = _targetItem;
-		}
-	}
-
-	return;
-}
-
-
-/**
  * Get all styles
  * @param { Document } _doc 
  * @param { "paragraph style" | "character styles" | "object styles" | "table styles" | "cell styles" } _styleType 
