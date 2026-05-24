@@ -1,10 +1,10 @@
 ﻿//@targetengine "addBookmarks"
 
-/* DESCRIPTION: Add Bookmarks to Paragraph Style, Character Style or GREP */
+/* DESCRIPTION: Add Bookmarks by Paragraph Style, Character Style or GREP */
 
 /*
 	
-		+ Adobe InDesign Version: CS6+
+		+ Adobe InDesign Version: 2025+
 		+ Autor: Roland Dreger 
 		+ Datum: 22. September 2014
 		
@@ -132,11 +132,11 @@ function __showDialog() {
 	_pStyleLevel1Listbox.minimumSize = [640, 141];
 	_pStyleLevel1Listbox.maximumSize = [640, 141];
 
-	var _listboxSelectionHelpTextGroup = _pStyleTab.add("group");
-	_listboxSelectionHelpTextGroup.spacing = 40;
-	_listboxSelectionHelpTextGroup.margins = [10, 0, 10, 10];
-	_listboxSelectionHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
-	_listboxSelectionHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
+	var _pStyleListboxHelpTextGroup = _pStyleTab.add("group");
+	_pStyleListboxHelpTextGroup.spacing = 40;
+	_pStyleListboxHelpTextGroup.margins = [10, 0, 10, 10];
+	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
+	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
 
 	var _pStyleLevel2ListboxOptions = {
 		"numberOfColumns": 2,
@@ -164,11 +164,28 @@ function __showDialog() {
 	_pStyleActionButtonGroup.margins.top = 10;
 	var _selectPDFHeadings = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
 
+
 	/* Character Styles */
 	var _cStyleTab = _tabPanel.add("tab", undefined, "Character Styles");
 	_cStyleTab.alignChildren = "fill";
 
-	var _cStyleDropDown = _cStyleTab.add("dropdownlist", undefined, []);
+	var _cStyleLevel1ListboxOptions = {
+		"numberOfColumns": 1,
+		"columnWidths": [620],
+		"showHeaders": false,
+		"columnTitles": [localize(_global.level1Label)],
+		"multiselect": true
+	};
+	var _cStyleLevel1Listbox = _cStyleTab.add("listbox", undefined, " ", _cStyleLevel1ListboxOptions);
+	_cStyleLevel1Listbox.minimumSize = [640, 423];
+	_cStyleLevel1Listbox.maximumSize = [640, 423];
+
+	var _cStyleListboxHelpTextGroup = _cStyleTab.add("group");
+	_cStyleListboxHelpTextGroup.spacing = 40;
+	_cStyleListboxHelpTextGroup.margins = [10, 0, 10, 10];
+	_cStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
+	_cStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
+
 
 	/* GREP */
 	var _grepTab = _tabPanel.add("tab", undefined, "GREP");
@@ -260,6 +277,9 @@ function __showDialog() {
 	/* Start */
 	_startButton.onClick = function () {
 
+		if (!_global) {
+			return;
+		}
 		if (app.documents.length === 0 || app.layoutWindows.length === 0) {
 			_ui.text = localize(_global.addBookmarks);
 			return;
@@ -311,13 +331,18 @@ function __showDialog() {
 
 	/* Refresh dialog */
 	_refreshButton.onClick = function () {
+		if (!_global) {
+			return;
+		}
 		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1);
 		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2);
 		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
-		__fillStylesDropDown(_cStyleDropDown, "character styles");
+		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
 		_pStyleLevel2Listbox.visible = false;
 		_pStyleLevel3Listbox.visible = false;
 		_grepInputField.text = "";
+		_parentBookmarkCheck.value = false;
+		_parentBookmarkDropdown.hide();
 		_ui.text = localize(_global.addBookmarks);
 	};
 
@@ -341,7 +366,7 @@ function __showDialog() {
 	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1);
 	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2);
 	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
-	__fillStylesDropDown(_cStyleDropDown, "character styles");
+	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
 
 	_pStyleLevel2Listbox.visible = false;
 	_pStyleLevel3Listbox.visible = false;
@@ -375,20 +400,19 @@ function __fillStylesListbox(_listbox, _styleType, _level) {
 		return;
 	}
 
+	/* Reset listbox */
+	_listbox.removeAll();
+
 	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
-		_listbox.removeAll();
 		return;
 	}
 
 	var _doc = app.activeDocument;
 	if (!document.isValid) {
-		_listbox.removeAll();
 		return;
 	}
 
 	var _styleObjArray = __getAllStyles(_doc, _styleType);
-
-	_listbox.removeAll();
 
 	for (var s = 0; s < _styleObjArray.length; s += 1) {
 
@@ -409,9 +433,13 @@ function __fillStylesListbox(_listbox, _styleType, _level) {
 			continue;
 		}
 
-		var _pdfExportTag = _styleObj.exportTags.pdf || "";
-		_listItem.subItems[0].text = _pdfExportTag;
+		/* Subitems */
+		if (_listItem.subItems[0]) {
+			var _pdfExportTag = _styleObj.exportTags.pdf || "";
+			_listItem.subItems[0].text = _pdfExportTag;
+		}
 
+		/* Item props */
 		_listItem.style = _style;
 		_listItem.level = _level;
 	}
@@ -771,6 +799,9 @@ function __getExportTags(_style) {
  */
 function __fillParentBookmarkDropdown(_dropDown) {
 
+	if (!_global) {
+		return;
+	}
 	if (!_dropDown || !(_dropDown instanceof DropDownList)) {
 		return;
 	}
@@ -791,7 +822,11 @@ function __fillParentBookmarkDropdown(_dropDown) {
 		if (!_bookmark || !_bookmark.isValid) {
 			continue;
 		}
-		var _dropDownItem = _dropDown.add("item", _bookmark.extractLabel("fullName"));
+		var _fullName = __createBookmarkFullName(_bookmark);
+		if (!_fullName) {
+			_fullName = localize(_global.defaultBookmarkName);
+		}
+		var _dropDownItem = _dropDown.add("item", _fullName);
 		if (!!_dropDownItem) {
 			_dropDownItem.bookmark = _bookmark;
 		}
@@ -1183,7 +1218,7 @@ function __addBookmark(_doc, _destText, _parentBookmark) {
 		.replace("^\\s+", "", "");
 
 	if (!_bookmarkName) {
-		_bookmarkName = localize(_global.anchorLabel);
+		_bookmarkName = localize(_global.defaultBookmarkName);
 	}
 
 	var _bookmark = null;
@@ -1231,11 +1266,6 @@ function __getAllBookmarks(_parent, _allBookmarkArray) {
 
 		var _bookmark = _bookmarkArray[i];
 		if (!_bookmark || !_bookmark.isValid) {
-			continue;
-		}
-
-		var _fullName = __createBookmarkFullName(_bookmark);
-		if (!_fullName) {
 			continue;
 		}
 
@@ -1541,7 +1571,7 @@ function __defLocalizeStrings() {
 		de: "Leeren"
 	};
 
-	_global.anchorLabel = {
+	_global.defaultBookmarkName = {
 		en: "Bookmark",
 		de: "Lesezeichen"
 	};
