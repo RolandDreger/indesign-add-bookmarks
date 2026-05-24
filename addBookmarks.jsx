@@ -134,7 +134,7 @@ function __showDialog() {
 
 	var _pStyleListboxHelpTextGroup = _pStyleTab.add("group");
 	_pStyleListboxHelpTextGroup.spacing = 40;
-	_pStyleListboxHelpTextGroup.margins = [10, 0, 10, 10];
+	_pStyleListboxHelpTextGroup.margins = [5, 0, 5, 10];
 	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
 	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
 
@@ -182,7 +182,7 @@ function __showDialog() {
 
 	var _cStyleListboxHelpTextGroup = _cStyleTab.add("group");
 	_cStyleListboxHelpTextGroup.spacing = 40;
-	_cStyleListboxHelpTextGroup.margins = [10, 0, 10, 10];
+	_cStyleListboxHelpTextGroup.margins = [5, 0, 5, 10];
 	_cStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
 	_cStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
 
@@ -191,6 +191,7 @@ function __showDialog() {
 	var _grepTab = _tabPanel.add("tab", undefined, "GREP");
 	_grepTab.alignChildren = "fill";
 
+	_grepTab.add("statictext", undefined, localize(_global.grepFindWhatLabel));
 	var _grepInputField = _grepTab.add("edittext", undefined, "", { multiline: false });
 
 	/* Parent Bookmark */
@@ -308,8 +309,9 @@ function __showDialog() {
 				break;
 			/* Character Style */
 			case _cStyleTab:
-				if (!!_cStyleDropDown.selection && !!_cStyleDropDown.selection.style && _cStyleDropDown.selection.style.isValid) {
-					_argsArray = [[_cStyleDropDown.selection.style], _parentBookmark];
+				if (!!_cStyleLevel1Listbox.selection) {
+					var _selectedCStyleObjArray = __getSelectedStyleObjects([_cStyleLevel1Listbox]);
+					_argsArray = [_selectedCStyleObjArray, _parentBookmark];
 					_addedBookmarks = app.doScript(__makeBookmarksByCharacterStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 				}
 				break;
@@ -1049,8 +1051,8 @@ function __makeBookmarksByCharacterStyles(_doScriptArgumentArray) {
 		return [0, 0];
 	}
 
-	var _cStyleArray = _doScriptArgumentArray[0];
-	if (!_cStyleArray || !(_cStyleArray instanceof Array)) {
+	var _cStyleObjArray = _doScriptArgumentArray[0];
+	if (!_cStyleObjArray || !(_cStyleObjArray instanceof Array)) {
 		return [0, 0];
 	}
 
@@ -1069,9 +1071,14 @@ function __makeBookmarksByCharacterStyles(_doScriptArgumentArray) {
 	var _errorCounter = 0;
 
 	/* Loop: Character Styles */
-	outer: for (var s = 0; s < _cStyleArray.length; s += 1) {
+	outer: for (var s = 0; s < _cStyleObjArray.length; s += 1) {
 
-		var _targetCStyle = _cStyleArray[s];
+		var _cStyleObj = _cStyleObjArray[s];
+		if (!_cStyleObj) {
+			continue;
+		}
+
+		var _targetCStyle = _cStyleObj.style;
 		if (!_targetCStyle || !_targetCStyle.isValid) {
 			continue;
 		}
@@ -1654,5 +1661,10 @@ function __defLocalizeStrings() {
 	_global.listBoxDeselectHelpTip = {
 		en: "Remove item from selection: CTRL + click",
 		de: "Eintrag aus Auswahl entfernen: CTRL + Klick"
+	};
+
+	_global.grepFindWhatLabel = {
+		en: "Find what:",
+		de: "Suchen nach:"
 	};
 }
