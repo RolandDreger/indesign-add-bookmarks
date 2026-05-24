@@ -275,8 +275,8 @@ function __showDialog() {
 			/* Paragraph Style */
 			case _pStyleTab:
 				if (!!_pStyleLevel1Listbox.selection) {
-					var _selectedPStyleArray = __getSelectedStyles([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox]);
-					_argsArray = [_selectedPStyleArray, _parentBookmark];
+					var _selectedPStyleObjArray = __getSelectedStyleObjects([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox]);
+					_argsArray = [_selectedPStyleObjArray, _parentBookmark];
 					_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 				}
 				break;
@@ -305,9 +305,9 @@ function __showDialog() {
 
 	/* Refresh dialog */
 	_refreshButton.onClick = function () {
-		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles");
-		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles");
-		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles");
+		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1);
+		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2);
+		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
 		__fillStylesDropDown(_cStyleDropDown, "character styles");
 		_pStyleLevel2Listbox.visible = false;
 		_pStyleLevel3Listbox.visible = false;
@@ -332,9 +332,9 @@ function __showDialog() {
 	/**
 	 * Init dialog
 	 */
-	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles");
-	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles");
-	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles");
+	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1);
+	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2);
+	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
 	__fillStylesDropDown(_cStyleDropDown, "character styles");
 
 	_pStyleLevel2Listbox.visible = false;
@@ -353,16 +353,19 @@ function __showDialog() {
 /**
  * Fill style listbox
  * @param {ListBox} _listbox 
- * @param {Array} _styleArray 
  * @param {string} _styleType 
+ * @param {number} _level 
  * @returns 
  */
-function __fillStylesListbox(_listbox, _styleType) {
+function __fillStylesListbox(_listbox, _styleType, _level) {
 
 	if (!_listbox || !(_listbox instanceof ListBox)) {
 		return null;
 	}
 	if (!_styleType || typeof _styleType !== "string") {
+		return;
+	}
+	if (_level === undefined || _level === null || typeof _level !== "number") {
 		return;
 	}
 
@@ -404,6 +407,7 @@ function __fillStylesListbox(_listbox, _styleType) {
 		_listItem.subItems[0].text = _pdfExportTag;
 
 		_listItem.style = _style;
+		_listItem.level = _level;
 	}
 }
 
@@ -495,16 +499,16 @@ function __selectListboxItemsByExportTags(_listbox, _level) {
 
 /**
  * Get selected styles
- * @param {Array} _pStyleLevel1Listbox 
- * @returns {Array}
+ * @param {Array} _listboxArray 
+ * @returns {Array<{"style": ParagraphStyle|CharacterStyle, "level": number}>}
  */
-function __getSelectedStyles(_listboxArray) {
+function __getSelectedStyleObjects(_listboxArray) {
 
 	if (!_listboxArray || !(_listboxArray instanceof Array)) {
 		return [];
 	}
 
-	var _styleArray = [];
+	var _styleObjArray = [];
 
 	for (var i = 0; i < _listboxArray.length; i += 1) {
 
@@ -529,12 +533,19 @@ function __getSelectedStyles(_listboxArray) {
 			if (!_style || !(_style instanceof Object) || !_style.isValid) {
 				continue;
 			}
+			var _level = _listboxItem.level;
+			if (_level === undefined || _level === null || typeof _level !== "number") {
+				continue;
+			}
 
-			_styleArray.push(_style);
+			_styleObjArray.push({
+				"style": _style,
+				"level": _level
+			});
 		}
 	}
 
-	return _styleArray;
+	return _styleObjArray;
 }
 
 
@@ -817,8 +828,8 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 		return [0, 0];
 	}
 
-	var _pStyleArray = _doScriptArgumentArray[0];
-	if (!_pStyleArray || !(_pStyleArray instanceof Array)) {
+	var _pStyleObjArray = _doScriptArgumentArray[0];
+	if (!_pStyleObjArray || !(_pStyleObjArray instanceof Array)) {
 		return [0, 0];
 	}
 
@@ -833,26 +844,23 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 		return [0, 0];
 	}
 
-	const _headingLevelRegExp = new RegExp("H(\\d)", "i");
-
 	var _bookmarkCounter = 0;
 	var _errorCounter = 0;
 
 	/* Loop: Paragraph Styles */
-	outer: for (var s = 0; s < _pStyleArray.length; s += 1) {
+	outer: for (var s = 0; s < _pStyleObjArray.length; s += 1) {
 
-		var _targetPStyle = _pStyleArray[s];
+		var _pStyleObj = _pStyleObjArray[s];
+		if (!_pStyleObj) {
+			continue;
+		}
+		var _targetPStyle = _pStyleObj.style;
 		if (!_targetPStyle || !_targetPStyle.isValid) {
 			continue;
 		}
-
-		/* Heading level */
-		var _pdfHeadingLevel = "";
-		var _exportTagObj = __getExportTags(_targetPStyle);
-		var _pdfExportTag = _exportTagObj.pdf;
-		var _pdfLevelMatchArray = _pdfExportTag.match(_headingLevelRegExp);
-		if (!!_pdfLevelMatchArray && _pdfLevelMatchArray.length >= 2) {
-			_pdfHeadingLevel = _pdfLevelMatchArray[1] || "";
+		var _bookmarkLevel = _pStyleObj.level;
+		if (_bookmarkLevel === undefined || _bookmarkLevel === null || typeof _bookmarkLevel !== "number") {
+			continue;
 		}
 
 		var _pStyleMatchArray = __findGREP(_doc, { "appliedParagraphStyle": _targetPStyle }, "forward");
@@ -891,9 +899,7 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 
 				var _bookmark = __addBookmark(_doc, _targetParagraph, _parentBookmark);
 				if (_bookmark && _bookmark.isValid) {
-					if (_pdfHeadingLevel !== "") {
-						_bookmark.insertLabel("pdf-heading-level", _pdfHeadingLevel);
-					}
+					_bookmark.insertLabel("level", String(_bookmarkLevel));
 					_bookmarkCounter += 1;
 				} else {
 					_errorCounter += 1;
@@ -903,8 +909,10 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 	}
 
 	if (_bookmarkCounter > 0) {
+
 		/* Sort bookmarks */
 		var _areBookmarksSorted = __sortBookmarks();
+
 		/* Nest bookmarks */
 		if (_areBookmarksSorted) {
 			__nestBookmarks(_doc, _parentBookmark);
@@ -955,22 +963,22 @@ function __nestBookmarks(_doc, _parent) {
 			continue;
 		}
 
-		var _pdfHeadingLevel = _bookmark.extractLabel("pdf-heading-level");
-		if (!_pdfHeadingLevel) {
+		var _bookmarkLevel = _bookmark.extractLabel("level");
+		if (!_bookmarkLevel) {
 			continue;
 		}
 
-		switch (_pdfHeadingLevel) {
-			case "1":
+		switch (Number(_bookmarkLevel)) {
+			case 1:
 				_leve1Bookmark = _bookmark;
 				break;
-			case "2":
+			case 2:
 				_leve2Bookmark = _bookmark;
 				if (_leve1Bookmark && _leve1Bookmark.isValid) {
 					_bookmark.move(LocationOptions.AT_END, _leve1Bookmark);
 				}
 				break;
-			case "3":
+			case 3:
 				if (_leve2Bookmark && _leve2Bookmark.isValid) {
 					_bookmark.move(LocationOptions.AT_END, _leve2Bookmark);
 				}
@@ -979,8 +987,10 @@ function __nestBookmarks(_doc, _parent) {
 
 		/* Reset script label */
 		try {
-			_bookmark.insertLabel("pdf-heading-level", "");
-		} catch (_error) { }
+			_bookmark.insertLabel("level", "");
+		} catch (_error) {
+			/* $.writeln(_error.message; */
+		}
 	}
 
 	return true;
@@ -1183,6 +1193,7 @@ function __addBookmark(_doc, _destText, _parentBookmark) {
 		_bookmark.name = _bookmarkName;
 
 	} catch (_error) {
+		/* $.writeln(_error.message; */
 		return null;
 	}
 
