@@ -221,7 +221,7 @@ function __showDialog() {
 	_refreshButton.helpTip = localize(_global.refreshButtonHelpText);
 
 	var _cancelButton = _actionButtonGroup.add("button", undefined, localize(_global.cancelButtonLabel), { name: "cancel" });
-	_cancelButton.alignment = ["fill", "top"];
+	_cancelButton.alignment = ["fill", "bottom"];
 	_cancelButton.helpTip = localize(_global.cancelButtonHelpText);
 
 
