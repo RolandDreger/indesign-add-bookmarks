@@ -56,22 +56,6 @@
 				"engineName": "addBookmarks",
 				"hostAppSpecifier": "indesign-17.064"
 			},
-			/* InDesign 2021 -> main */
-			{
-				"type": "extendscript-debug",
-				"request": "attach",
-				"name": "ID 2021",
-				"engineName": "main",
-				"hostAppSpecifier": "indesign-16.064"
-			},
-			/* InDesign 2020 -> main */
-			{
-				"type": "extendscript-debug",
-				"request": "attach",
-				"name": "ID 2020",
-				"engineName": "main",
-				"hostAppSpecifier": "indesign-15.064"
-			},
 			{
 				"type": "extendscript-debug",
 				"request": "launch",
