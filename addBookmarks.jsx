@@ -119,7 +119,7 @@ function __showDialog() {
 	/* Paragraph Styles */
 	var _pStyleTab = _tabPanel.add("tab", undefined, "Paragaph Styles");
 	_pStyleTab.alignChildren = "fill";
-	_pStyleTab.spacing = 15;
+	_pStyleTab.spacing = 10;
 
 	var _pStyleLevel1ListboxOptions = {
 		"numberOfColumns": 2,
@@ -131,6 +131,12 @@ function __showDialog() {
 	var _pStyleLevel1Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
 	_pStyleLevel1Listbox.minimumSize = [640, 141];
 	_pStyleLevel1Listbox.maximumSize = [640, 141];
+
+	var _listboxSelectionHelpTextGroup = _pStyleTab.add("group");
+	_listboxSelectionHelpTextGroup.spacing = 40;
+	_listboxSelectionHelpTextGroup.margins = [10, 0, 10, 10];
+	_listboxSelectionHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
+	_listboxSelectionHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
 
 	var _pStyleLevel2ListboxOptions = {
 		"numberOfColumns": 2,
@@ -1610,4 +1616,13 @@ function __defLocalizeStrings() {
 		de: "Dialogfenster schlie\u00dfen"
 	};
 
+	_global.listBoxMultiselectHelpTip = {
+		en: "Select multiple items: SHIFT + click",
+		de: "Mehrere Einträge auswählen: SHIFT + Klick"
+	};
+
+	_global.listBoxDeselectHelpTip = {
+		en: "Remove item from selection: CTRL + click",
+		de: "Eintrag aus Auswahl entfernen: CTRL + Klick"
+	};
 }
