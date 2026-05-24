@@ -1598,8 +1598,8 @@ function __defLocalizeStrings() {
 	};
 
 	_global.listBoxDeselectHelpTip = {
-		en: "Remove item from selection: CTRL + click",
-		de: "Eintrag aus Auswahl entfernen: CTRL + Klick"
+		en: "Remove item from selection: CMD + click",
+		de: "Eintrag aus Auswahl entfernen: CMD + Klick"
 	};
 
 	_global.grepFindWhatLabel = {
