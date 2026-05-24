@@ -121,28 +121,39 @@ function __showDialog() {
 	_pStyleTab.alignChildren = "fill";
 	_pStyleTab.spacing = 15;
 
-	var _pStyleLevel1ListboxOptions = { "numberOfColumns": 3, "showHeaders": true, "columnTitles": [localize(_global.level1Label), "PDF", "ePub"], "multiselect": true };
+	var _pStyleLevel1ListboxOptions = {
+		"numberOfColumns": 2,
+		"columnWidths": [500, 120],
+		"showHeaders": true,
+		"columnTitles": [localize(_global.level1Label), localize(_global.pdfExportTagLabel)],
+		"multiselect": true
+	};
 	var _pStyleLevel1Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
 	_pStyleLevel1Listbox.maximumSize.height = 141;
-	_pStyleLevel1Listbox.minimumSize.width = 480;
-	_pStyleLevel1Listbox.maximumSize.width = 1000;
 
-	var _pStyleLevel2ListboxOptions = { "numberOfColumns": 3, "showHeaders": true, "columnTitles": [localize(_global.level2Label), "PDF", "ePub"], "multiselect": true };
+	var _pStyleLevel2ListboxOptions = {
+		"numberOfColumns": 2,
+		"columnWidths": [500, 120],
+		"showHeaders": true,
+		"columnTitles": [localize(_global.level2Label), localize(_global.pdfExportTagLabel)],
+		"multiselect": true
+	};
 	var _pStyleLevel2Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
 	_pStyleLevel2Listbox.maximumSize.height = 141;
-	_pStyleLevel1Listbox.minimumSize.width = 480;
-	_pStyleLevel1Listbox.maximumSize.width = 1000;
 
-	var _pStyleLevel3ListboxOptions = { "numberOfColumns": 3, "showHeaders": true, "columnTitles": [localize(_global.level3Label), "PDF", "ePub"], "multiselect": true };
+	var _pStyleLevel3ListboxOptions = {
+		"numberOfColumns": 2,
+		"columnWidths": [500, 120],
+		"showHeaders": true,
+		"columnTitles": [localize(_global.level3Label), localize(_global.pdfExportTagLabel)],
+		"multiselect": true
+	};
 	var _pStyleLevel3Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel3ListboxOptions);
 	_pStyleLevel3Listbox.maximumSize.height = 141;
-	_pStyleLevel1Listbox.minimumSize.width = 480;
-	_pStyleLevel1Listbox.maximumSize.width = 1000;
 
 	var _pStyleActionButtonGroup = _pStyleTab.add("group");
 	_pStyleActionButtonGroup.margins.top = 10;
 	var _selectPDFHeadings = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
-	var _selectEPUBHeadings = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectEPUBHeadingsButtonLabel));
 
 	/* Character Styles */
 	var _cStyleTab = _tabPanel.add("tab", undefined, "Character Styles");
@@ -214,15 +225,9 @@ function __showDialog() {
 	};
 
 	_selectPDFHeadings.onClick = function () {
-		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1, "PDF");
-		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2, "PDF");
-		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3, "PDF");
-	};
-
-	_selectEPUBHeadings.onClick = function () {
-		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1, "EPUB");
-		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2, "EPUB");
-		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3, "EPUB");
+		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1);
+		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2);
+		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3);
 	};
 
 
@@ -258,29 +263,31 @@ function __showDialog() {
 		var _addedBookmarks = 0;
 		var _argsArray = [];
 
-		/* Paragraph Style */
-		if (_pStyleLevel1Listbox.visible == true) {
-			if (!!_pStyleLevel1Listbox.selection) {
-				var _selectedPStyleArray = __getSelectedStyles([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox]);
-				_argsArray = [_selectedPStyleArray, _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
-			}
-		}
-
-		/* Character Style */
-		else if (_cStyleDropDown.visible == true) {
-			if (!!_cStyleDropDown.selection) {
-				_argsArray = [[_cStyleDropDown.selection.style], _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarksByCharacterStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
-			}
-		}
-
-		/* GREP */
-		else if (_grepInputField.visible == true) {
-			if (!!_grepInputField.text) {
-				_argsArray = [_grepInputField.text, _parentBookmark];
-				_addedBookmarks = app.doScript(__makeBookmarksByGREP, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
-			}
+		switch (_tabPanel.selection) {
+			/* Paragraph Style */
+			case _pStyleTab:
+				if (!!_pStyleLevel1Listbox.selection) {
+					var _selectedPStyleArray = __getSelectedStyles([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox]);
+					_argsArray = [_selectedPStyleArray, _parentBookmark];
+					_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
+				}
+				break;
+			/* Character Style */
+			case _cStyleTab:
+				if (!!_cStyleDropDown.selection && !!_cStyleDropDown.selection.style && _cStyleDropDown.selection.style.isValid) {
+					_argsArray = [[_cStyleDropDown.selection.style], _parentBookmark];
+					_addedBookmarks = app.doScript(__makeBookmarksByCharacterStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
+				}
+				break;
+			/* GREP */
+			case _grepTab:
+				if (!!_grepInputField.text) {
+					_argsArray = [_grepInputField.text, _parentBookmark];
+					_addedBookmarks = app.doScript(__makeBookmarksByGREP, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
+				}
+				break;
+			default:
+				break;
 		}
 
 		_ui.text = __buildResultString(_addedBookmarks);
@@ -383,10 +390,7 @@ function __fillStylesListbox(_listbox, _styleType) {
 		}
 
 		var _pdfExportTag = _styleObj.pdfExportTag || "";
-		var _epubExportTag = _styleObj.epubExportTag || "";
-
 		_listItem.subItems[0].text = _pdfExportTag;
-		_listItem.subItems[1].text = _epubExportTag;
 
 		_listItem.style = _style;
 	}
@@ -444,10 +448,9 @@ function __deselectStylesListboxItems(_listbox, _selectionArray) {
  * Select istbox items
  * @param {ListBox} _listbox 
  * @param {Number} _level 
- * @param {String} _type 
  * @returns {boolean}
  */
-function __selectListboxItemsByExportTags(_listbox, _level, _type) {
+function __selectListboxItemsByExportTags(_listbox, _level) {
 
 	if (!_listbox || !(_listbox instanceof ListBox)) {
 		return false;
@@ -455,13 +458,12 @@ function __selectListboxItemsByExportTags(_listbox, _level, _type) {
 	if (!_level || typeof _level !== "number" || _level < 1 || _level > 6) {
 		return false;
 	}
-	if (_type !== "PDF" && _type !== "EPUB") {
-		return false;
-	}
+
 
 	/* Reset */
 	_listbox.selection = null;
 
+	/* Select items */
 	var _listboxItemArray = _listbox.items;
 
 	for (var i = 0; i < _listboxItemArray.length; i += 1) {
@@ -471,27 +473,12 @@ function __selectListboxItemsByExportTags(_listbox, _level, _type) {
 			continue;
 		}
 
-		var shouldBeSelected = false;
-
-		switch (_type) {
-			case "PDF":
-				if (_listboxItem.subItems[0].text === "H" + _level) {
-					shouldBeSelected = true;
-				}
-				break;
-			case "EPUB":
-				if (_listboxItem.subItems[1].text === "h" + _level) {
-					shouldBeSelected = true;
-				}
-				break;
-			default:
-				continue;
-		}
-
-		if (shouldBeSelected) {
+		if (_listboxItem.subItems[0].text === "H" + _level) {
 			_listboxItem.selected = true;
 		}
 	}
+
+	return true;
 }
 
 
@@ -605,7 +592,7 @@ function __fillStylesDropDown(_dropDown, _styleType) {
  * Get all styles
  * @param { Document } _doc 
  * @param { "paragraph style" | "character styles" | "object styles" | "table styles" | "cell styles" } _styleType 
- * @returns { Array<{"path": Array<string>, "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "pdfExportTag": string, "epubExportTag": string }> }
+ * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "pdfExportTag": string, "epubExportTag": string }> }
  */
 function __getAllStyles(_doc, _styleType) {
 
@@ -660,31 +647,14 @@ function __getAllStyles(_doc, _styleType) {
 			continue;
 		}
 
-		var _pdfExportTag = "";
-		var _epubExportTag = "";
-		var _styleExportTagMapArray = _style.styleExportTagMaps;
-
-		for (var e = 0; e < _styleExportTagMapArray.length; e += 1) {
-			var _styleExportTagMap = _styleExportTagMapArray[e];
-			if (!_styleExportTagMap) {
-				continue;
-			}
-			var _exportType = _styleExportTagMap.exportType;
-			var _exportTag = _styleExportTagMap.exportTag || "";
-			if (_exportType === "PDF") {
-				_pdfExportTag = _exportTag;
-			}
-			else if (_exportType === "EPUB") {
-				_epubExportTag = _exportTag;
-			}
-		}
-
 		var _stylePathArray = __getStyleName(_style, [_style.name], _styleGroupInstance);
+		var _exportTagObj = __getExportTags(_style);
+
 		_styleObjArray.push({
-			"path": _stylePathArray,
 			"style": _style,
-			"pdfExportTag": _pdfExportTag,
-			"epubExportTag": _epubExportTag
+			"path": _stylePathArray,
+			"pdfExportTag": _exportTagObj.pdf,
+			"epubExportTag": _exportTagObj.epub
 		});
 	}
 
@@ -725,6 +695,45 @@ function __getStyleName(_style, _stylePathArray, _styleGroupInstance) {
 	_stylePathArray = __getStyleName(_style.parent, _stylePathArray, _styleGroupInstance);
 
 	return _stylePathArray;
+}
+
+
+/**
+ * Get export tags
+ * @param {ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle } _style 
+ * @returns {{ "pdf": string, "epub": string }}
+ */
+function __getExportTags(_style) {
+
+	var _exportTagObj = {
+		"pdf": "",
+		"epub": ""
+	};
+
+	if (!_style || !_style.hasOwnProperty("styleExportTagMaps") || !_style.isValid) {
+		return _exportTagObj;
+	}
+
+	var _styleExportTagMapArray = _style.styleExportTagMaps;
+
+	for (var i = 0; i < _styleExportTagMapArray.length; i += 1) {
+
+		var _styleExportTagMap = _styleExportTagMapArray[i];
+		if (!_styleExportTagMap) {
+			continue;
+		}
+
+		var _exportType = _styleExportTagMap.exportType;
+		var _exportTag = _styleExportTagMap.exportTag || "";
+
+		if (_exportType === "PDF") {
+			_exportTagObj.pdf = _exportTag;
+		} else if (_exportType === "EPUB") {
+			_exportTagObj.epub = _exportTag;
+		}
+	}
+
+	return _exportTagObj;
 }
 
 
@@ -814,6 +823,8 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 		return [0, 0];
 	}
 
+	const _headingLevelRegExp = new RegExp("H(\\d)", "i");
+
 	var _bookmarkCounter = 0;
 	var _errorCounter = 0;
 
@@ -823,6 +834,15 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 		var _targetPStyle = _pStyleArray[s];
 		if (!_targetPStyle || !_targetPStyle.isValid) {
 			continue;
+		}
+
+		/* Heading level */
+		var _pdfHeadingLevel = "";
+		var _exportTagObj = __getExportTags(_targetPStyle);
+		var _pdfExportTag = _exportTagObj.pdf;
+		var _pdfLevelMatchArray = _pdfExportTag.match(_headingLevelRegExp);
+		if (!!_pdfLevelMatchArray && _pdfLevelMatchArray.length >= 2) {
+			_pdfHeadingLevel = _pdfLevelMatchArray[1] || "";
 		}
 
 		var _pStyleMatchArray = __findGREP(_doc, { "appliedParagraphStyle": _targetPStyle }, "forward");
@@ -859,8 +879,11 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 					continue;
 				}
 
-				var _wasBookmarkAdded = __addBookmark(_doc, _targetParagraph, _parentBookmark);
-				if (_wasBookmarkAdded) {
+				var _bookmark = __addBookmark(_doc, _targetParagraph, _parentBookmark);
+				if (_bookmark && _bookmark.isValid) {
+					if (_pdfHeadingLevel !== "") {
+						_bookmark.insertLabel("pdf-heading-level", _pdfHeadingLevel);
+					}
 					_bookmarkCounter += 1;
 				} else {
 					_errorCounter += 1;
@@ -940,8 +963,8 @@ function __makeBookmarksByCharacterStyles(_doScriptArgumentArray) {
 			_global["progressbar"].setLabel(String(_cStyleMatch.contents));
 			_global["progressbar"].step();
 
-			var _wasBookmarkAdded = __addBookmark(_doc, _cStyleMatch, _parentBookmark);
-			if (_wasBookmarkAdded) {
+			var _bookmark = __addBookmark(_doc, _cStyleMatch, _parentBookmark);
+			if (_bookmark && _bookmark.isValid) {
 				_bookmarkCounter += 1;
 			} else {
 				_errorCounter += 1;
@@ -1012,8 +1035,8 @@ function __makeBookmarksByGREP(_doScriptArgumentArray) {
 		_global["progressbar"].setLabel(String(_grepMatch.contents));
 		_global["progressbar"].step();
 
-		var _wasBookmarkAdded = __addBookmark(_doc, _grepMatch, _parentBookmark);
-		if (_wasBookmarkAdded) {
+		var _bookmark = __addBookmark(_doc, _grepMatch, _parentBookmark);
+		if (_bookmark && _bookmark.isValid) {
 			_bookmarkCounter += 1;
 		} else {
 			_errorCounter += 1;
@@ -1034,18 +1057,18 @@ function __makeBookmarksByGREP(_doScriptArgumentArray) {
  * @param {Document} _doc 
  * @param {Text} _destText 
  * @param {Bookmark | undefined } _parentBookmark 
- * @returns 
+ * @returns {Bookmark|null}
  */
 function __addBookmark(_doc, _destText, _parentBookmark) {
 
 	if (!_global) {
-		return false;
+		return null;
 	}
 	if (!_doc || !_doc.isValid) {
-		return false;
+		return null;
 	}
 	if (!_destText || !_destText.hasOwnProperty("contents") || !_destText.isValid) {
-		return false;
+		return null;
 	}
 
 	var _bookmarkName;
@@ -1054,22 +1077,30 @@ function __addBookmark(_doc, _destText, _parentBookmark) {
 	/* ToDo: mehr Zeichen entfernen??? */
 	_bookmarkName = _destTextContents.replace("\\s+", " ", "g")
 		.replace("[\x00-\x1F\uFEFF\uFFFC\u00AD\u200C\u200B]", "", "g")
-		.replace("\\s+$", "", "");
+		.replace("\\s+$", "", "")
+		.replace("^\\s+", "", "");
 
 	if (!_bookmarkName) {
 		_bookmarkName = localize(_global.anchorLabel);
 	}
 
+	var _bookmark = null;
+
 	try {
+
+		/* Text anchor */
 		var _destTextAnchor = _doc.hyperlinkTextDestinations.add(_destText);
-		var _bookmark = _doc.bookmarks.add(_destTextAnchor);
+
+		/* Bookmark */
+		_bookmark = _doc.bookmarks.add(_destTextAnchor);
 		_bookmark.move(LocationOptions.AT_BEGINNING, _parentBookmark);
 		_bookmark.name = _bookmarkName;
-	} catch (e) {
-		return false;
+
+	} catch (_error) {
+		return null;
 	}
 
-	return true;
+	return _bookmark;
 }
 
 
@@ -1414,28 +1445,28 @@ function __defLocalizeStrings() {
 	}
 
 	_global.level1Label = {
-		en: "Level 1",
-		de: "Ebene 1"
+		en: "Bookmarks Level 1",
+		de: "Lesezeichen Ebene 1"
 	}
 
 	_global.level2Label = {
-		en: "Level 2",
-		de: "Ebene 2"
+		en: "Bookmarks Level 2",
+		de: "Lesezeichen Ebene 2"
 	}
 
 	_global.level3Label = {
-		en: "Level 3",
-		de: "Ebene 3"
+		en: "Bookmarks Level 3",
+		de: "Lesezeichen Ebene 3"
+	}
+
+	_global.pdfExportTagLabel = {
+		en: "Export Tag (PDF)",
+		de: "Export-Tag (PDF)"
 	}
 
 	_global.selectPDFHeadingsButtonLabel = {
 		en: "Select PDF Headings",
 		de: "PDF-Überschriften auswählen"
-	}
-
-	_global.selectEPUBHeadingsButtonLabel = {
-		en: "Select ePub Headings",
-		de: "ePub-Überschriften auswählen"
 	}
 
 	_global.bookmarksAddedAlert = {
@@ -1453,11 +1484,6 @@ function __defLocalizeStrings() {
 		de: "Fundstellen \u00fcbersprungen"
 	}
 
-	_global.conditionAlert = {
-		en: "Important Note!\rYou are using “conditional text” in your document.\r\rWith a GREP search, the “text conditions” you applied are removed from the matches.\r\rContinue Anyway?",
-		de: "Wichtiger Hinweis!\rDu verwendest in deinem Dokument »bedingten Text«.\r\rBei der GREP-Suche werden die von dir zugewiesenen »Bedingungen« an den Fundstellen entfernt.\r\rTrotzdem fortfahren?"
-	}
-
 	_global.parentBookmarkCheckboxLabel = {
 		en: "Parent Bookmark",
 		de: "\u00dcbergeordnetes Lesezeichen"
@@ -1473,4 +1499,4 @@ function __defLocalizeStrings() {
 		de: "Lesezeichen hinzufügen"
 	}
 
-} /* END function __defLocalizeStrings */
+}
