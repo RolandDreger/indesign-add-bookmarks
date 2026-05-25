@@ -917,6 +917,7 @@ function __sortBookmarks() {
 		app.menuActions.itemByID(95498).invoke();
 	} catch (_error) {
 		alert(_error.message);
+		return false;
 	}
 
 	return true;
