@@ -1026,7 +1026,7 @@ function __makeBookmarksByCharacterStyles(_doScriptArgumentArray) {
 			continue;
 		}
 
-		var _cStyleMatchArray = __findGREP(_doc, { "appliedCharacterStyle": _targetCStyle }, "forward");
+		var _cStyleMatchArray = __findGREP(_doc, { "findWhat": "(.|\n|~F)+", "appliedCharacterStyle": _targetCStyle }, "forward");
 		if (_cStyleMatchArray.length === 0) {
 			continue;
 		}
