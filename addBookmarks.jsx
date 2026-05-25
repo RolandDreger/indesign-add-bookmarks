@@ -1477,8 +1477,8 @@ function __createProgressbar() {
 function __defLocalizeStrings() {
 
 	_global.addBookmarks = {
-		en: "Add Bookmarks 2.0",
-		de: "Add Bookmarks 2.0"
+		en: "Add Bookmarks 2.1",
+		de: "Add Bookmarks 2.1"
 	};
 
 	_global.goBackLabel = {
