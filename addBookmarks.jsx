@@ -1167,8 +1167,8 @@ function __addBookmark(_doc, _destText, _parentBookmark) {
 	var _destTextContents = String(_destText.contents);
 
 	/* ToDo: mehr Zeichen entfernen??? */
-	_bookmarkName = _destTextContents.replace("\\s+", " ", "g")
-		.replace("[\x00-\x1F\uFEFF\uFFFC\u00AD\u200C\u200B]", "", "g")
+	_bookmarkName = _destTextContents.replace("\n", "").replace("\\s+", " ", "g")
+		.replace("[\x03\x04\x07\x08\x16\x17\x18\x19\u200B\uFEFF\uFFFC\uFFFE\u2011\u2028\u2029\u00AD\u200C\u200D\u200E\u200F\u202A-\u202E\u2063]", "", "g")
 		.replace("\\s+$", "", "")
 		.replace("^\\s+", "", "");
 
