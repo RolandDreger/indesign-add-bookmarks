@@ -8,7 +8,7 @@
 		+ Autor: Roland Dreger 
 		+ Datum: 22. September 2014
 		
-		+ Zuletzt aktualisiert: 24. Mai 2026
+		+ Zuletzt aktualisiert: 25. Mai 2026
 		
 		
 		+ Freies Script fuer private und kommerzielle Nutzung (Creativ Commons Lizenz: Roland Dreger, CC BY 3.0 AT). 
