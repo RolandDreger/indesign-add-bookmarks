@@ -10,6 +10,11 @@
 		
 		+ Zuletzt aktualisiert: 25. Mai 2026
 		
+		+ Note
+		
+		Special characters in the text (note references, index markers, text anchors, etc.) split the GREP search results. 
+		A single match can result in multiple hits. Solution: First highlight matches with conditional text, and then search 
+		for that conditional text?
 		
 		+ Freies Script fuer private und kommerzielle Nutzung (Creativ Commons Lizenz: Roland Dreger, CC BY 3.0 AT). 
 		+ Verwendung auf eigene Gefahr.
