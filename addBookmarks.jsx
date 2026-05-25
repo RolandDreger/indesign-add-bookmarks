@@ -954,6 +954,7 @@ function __nestBookmarks(_doc, _parent) {
 		switch (Number(_bookmarkLevel)) {
 			case 1:
 				_leve1Bookmark = _bookmark;
+				_leve2Bookmark = null;
 				break;
 			case 2:
 				_leve2Bookmark = _bookmark;
@@ -964,6 +965,8 @@ function __nestBookmarks(_doc, _parent) {
 			case 3:
 				if (_leve2Bookmark && _leve2Bookmark.isValid) {
 					_bookmark.move(LocationOptions.AT_END, _leve2Bookmark);
+				} else if (_leve1Bookmark && _leve1Bookmark.isValid) {
+					_bookmark.move(LocationOptions.AT_END, _leve1Bookmark);
 				}
 				break;
 		}
