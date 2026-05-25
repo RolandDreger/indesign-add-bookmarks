@@ -117,7 +117,7 @@ function __showDialog() {
 
 
 	/* Paragraph Styles */
-	var _pStyleTab = _tabPanel.add("tab", undefined, "Paragaph Styles");
+	var _pStyleTab = _tabPanel.add("tab", undefined, localize(_global.paragraphStyleTabLabel));
 	_pStyleTab.alignChildren = "fill";
 	_pStyleTab.spacing = 10;
 
@@ -166,7 +166,7 @@ function __showDialog() {
 
 
 	/* Character Styles */
-	var _cStyleTab = _tabPanel.add("tab", undefined, "Character Styles");
+	var _cStyleTab = _tabPanel.add("tab", undefined, localize(_global.characterStyleTabLabel));
 	_cStyleTab.alignChildren = "fill";
 
 	var _cStyleLevel1ListboxOptions = {
@@ -188,7 +188,7 @@ function __showDialog() {
 
 
 	/* GREP */
-	var _grepTab = _tabPanel.add("tab", undefined, "GREP");
+	var _grepTab = _tabPanel.add("tab", undefined, localize(_global.grepSearchTabLabel));
 	_grepTab.alignChildren = "fill";
 
 	_grepTab.add("statictext", undefined, localize(_global.grepFindWhatLabel));
@@ -1525,6 +1525,21 @@ function __defLocalizeStrings() {
 	_global.defaultBookmarkName = {
 		en: "Bookmark",
 		de: "Lesezeichen"
+	};
+
+	_global.paragraphStyleTabLabel = {
+		en: "Paragraph Style",
+		de: "Absatzformat"
+	};
+
+	_global.characterStyleTabLabel = {
+		en: "Character Style",
+		de: "Zeichenformat"
+	};
+
+	_global.grepSearchTabLabel = {
+		en: "GREP Search",
+		de: "GREP-Suche"
 	};
 
 	_global.level1Label = {
