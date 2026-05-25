@@ -410,7 +410,7 @@ function __fillStylesListbox(_listbox, _styleType, _level) {
 	}
 
 	var _doc = app.activeDocument;
-	if (!document.isValid) {
+	if (!_doc.isValid) {
 		return;
 	}
 
@@ -1154,6 +1154,11 @@ function __addBookmark(_doc, _destText, _parentBookmark) {
 		return null;
 	}
 
+	var _parent = _parentBookmark;
+	if (!_parent || !_parent.isValid) {
+		_parent = _doc;
+	}
+
 	var _bookmarkName;
 	var _destTextContents = String(_destText.contents);
 
@@ -1176,7 +1181,7 @@ function __addBookmark(_doc, _destText, _parentBookmark) {
 
 		/* Bookmark */
 		_bookmark = _doc.bookmarks.add(_destTextAnchor);
-		_bookmark.move(LocationOptions.AT_BEGINNING, _parentBookmark);
+		_bookmark.move(LocationOptions.AT_BEGINNING, _parent);
 		_bookmark.name = _bookmarkName;
 
 	} catch (_error) {
