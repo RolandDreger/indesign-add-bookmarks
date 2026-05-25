@@ -845,7 +845,7 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 			continue;
 		}
 
-		var _pStyleMatchArray = __findGREP(_doc, { "appliedParagraphStyle": _targetPStyle }, "forward");
+		var _pStyleMatchArray = __findGREP(_doc, { "findWhat": "(.|\n|~F)+", "appliedParagraphStyle": _targetPStyle }, "forward");
 		if (_pStyleMatchArray.length === 0) {
 			continue;
 		}
