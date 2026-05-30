@@ -11,6 +11,9 @@ The “addBookmarks.jsx” script automatically inserts bookmarks into an Adobe 
 2. Put the unzipped script file in into the script folder of InDesign.
 3. Start the script addBookmarks.jsx from the script panel via double click.
 
+### Video
+
+[Using export tags for bookmark structure](https://vimeo.com/1196911557)
 
 ## Refresh
 
