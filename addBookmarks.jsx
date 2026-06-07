@@ -8,7 +8,7 @@
 		+ Autor: Roland Dreger 
 		+ Datum: 22. September 2014
 		
-		+ Zuletzt aktualisiert: 25. Mai 2026
+		+ Zuletzt aktualisiert: 7. Juni 2026
 		
 		+ Note
 		
@@ -124,13 +124,16 @@ function __showDialog() {
 	/* Paragraph Styles */
 	var _pStyleTab = _tabPanel.add("tab", undefined, localize(_global.paragraphStyleTabLabel));
 	_pStyleTab.alignChildren = "fill";
-	_pStyleTab.spacing = 10;
+	_pStyleTab.spacing = 15;
+
+	var _bookmarkLevel1Statictext = _pStyleTab.add("statictext", undefined, localize(_global.bookmarkLevel1Label));
+	_bookmarkLevel1Statictext.justify = "center";
 
 	var _pStyleLevel1ListboxOptions = {
-		"numberOfColumns": 2,
-		"columnWidths": [500, 120],
+		"numberOfColumns": 3,
+		"columnWidths": [250, 250, 120],
 		"showHeaders": true,
-		"columnTitles": [localize(_global.level1Label), localize(_global.pdfExportTagLabel)],
+		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
 	var _pStyleLevel1Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
@@ -143,22 +146,28 @@ function __showDialog() {
 	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
 	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
 
+	var _bookmarkLevel2Statictext = _pStyleTab.add("statictext", undefined, localize(_global.bookmarkLevel2Label));
+	_bookmarkLevel2Statictext.justify = "center";
+
 	var _pStyleLevel2ListboxOptions = {
-		"numberOfColumns": 2,
-		"columnWidths": [500, 120],
+		"numberOfColumns": 3,
+		"columnWidths": [250, 250, 120],
 		"showHeaders": true,
-		"columnTitles": [localize(_global.level2Label), localize(_global.pdfExportTagLabel)],
+		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
 	var _pStyleLevel2Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
 	_pStyleLevel2Listbox.minimumSize = [640, 141];
 	_pStyleLevel2Listbox.maximumSize = [640, 141];
 
+	var _bookmarkLevel3Statictext = _pStyleTab.add("statictext", undefined, localize(_global.bookmarkLevel3Label));
+	_bookmarkLevel3Statictext.justify = "center";
+
 	var _pStyleLevel3ListboxOptions = {
-		"numberOfColumns": 2,
-		"columnWidths": [500, 120],
+		"numberOfColumns": 3,
+		"columnWidths": [250, 250, 120],
 		"showHeaders": true,
-		"columnTitles": [localize(_global.level3Label), localize(_global.pdfExportTagLabel)],
+		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
 	var _pStyleLevel3Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel3ListboxOptions);
@@ -175,10 +184,10 @@ function __showDialog() {
 	_cStyleTab.alignChildren = "fill";
 
 	var _cStyleLevel1ListboxOptions = {
-		"numberOfColumns": 1,
-		"columnWidths": [620],
-		"showHeaders": false,
-		"columnTitles": [localize(_global.level1Label)],
+		"numberOfColumns": 2,
+		"columnWidths": [250, 370],
+		"showHeaders": true,
+		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel)],
 		"multiselect": true
 	};
 	var _cStyleLevel1Listbox = _cStyleTab.add("listbox", undefined, " ", _cStyleLevel1ListboxOptions);
@@ -236,13 +245,16 @@ function __showDialog() {
 	/* Paragraph styles */
 	_pStyleLevel1Listbox.onChange = function () {
 		if (_pStyleLevel1Listbox.selection) {
+			_bookmarkLevel2Statictext.visible = true;
 			_pStyleLevel2Listbox.visible = true;
 			__deselectStylesListboxItems(_pStyleLevel2Listbox, this.selection);
 			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
 			__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
 		} else {
+			_bookmarkLevel2Statictext.visible = false;
 			_pStyleLevel2Listbox.visible = false;
 			_pStyleLevel2Listbox.selection = null;
+			_bookmarkLevel3Statictext.visible = false;
 			_pStyleLevel3Listbox.visible = false;
 			_pStyleLevel3Listbox.selection = null;
 		}
@@ -250,10 +262,12 @@ function __showDialog() {
 
 	_pStyleLevel2Listbox.onChange = function () {
 		if (_pStyleLevel2Listbox.selection) {
+			_bookmarkLevel3Statictext.visible = true;
 			_pStyleLevel3Listbox.visible = true;
 			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
 			__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
 		} else {
+			_bookmarkLevel3Statictext.visible = false;
 			_pStyleLevel3Listbox.visible = false;
 			_pStyleLevel3Listbox.selection = null;
 		}
@@ -345,7 +359,9 @@ function __showDialog() {
 		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2);
 		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
 		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
+		_bookmarkLevel2Statictext.visible = false;
 		_pStyleLevel2Listbox.visible = false;
+		_bookmarkLevel3Statictext.visible = false;
 		_pStyleLevel3Listbox.visible = false;
 		_grepInputField.text = "";
 		_parentBookmarkCheck.value = false;
@@ -375,7 +391,9 @@ function __showDialog() {
 	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
 	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
 
+	_bookmarkLevel2Statictext.visible = false;
 	_pStyleLevel2Listbox.visible = false;
+	_bookmarkLevel3Statictext.visible = false;
 	_pStyleLevel3Listbox.visible = false;
 
 
@@ -427,23 +445,31 @@ function __fillStylesListbox(_listbox, _styleType, _level) {
 		if (!_styleObj) {
 			continue;
 		}
+
 		var _stylePathArray = _styleObj.path;
-		var _style = _styleObj.style;
-		if (!_stylePathArray || !_style || !_style.isValid) {
+		if (!_stylePathArray || !(_stylePathArray instanceof Array) || _stylePathArray.length < 1) {
 			continue;
 		}
 
-		var _stylePath = _stylePathArray.join(" → ");
+		var _style = _styleObj.style;
+		if (!_style || !_style.isValid) {
+			continue;
+		}
 
-		var _listItem = _listbox.add("item", _stylePath);
+		var _styleName = _stylePathArray[_stylePathArray.length - 1] || "";
+		var _listItem = _listbox.add("item", _styleName);
 		if (!_listItem) {
 			continue;
 		}
 
 		/* Subitems */
 		if (_listItem.subItems[0]) {
+			var _stylePath = _stylePathArray.slice(0, -1).join(" → ");
+			_listItem.subItems[0].text = _stylePath;
+		}
+		if (_listItem.subItems[1]) {
 			var _pdfExportTag = _styleObj.exportTags.pdf || "";
-			_listItem.subItems[0].text = _pdfExportTag;
+			_listItem.subItems[1].text = _pdfExportTag;
 		}
 
 		/* Item props */
@@ -525,11 +551,11 @@ function __selectListboxItemsByExportTags(_listbox, _level) {
 	for (var i = 0; i < _listboxItemArray.length; i += 1) {
 
 		var _listboxItem = _listboxItemArray[i];
-		if (!_listboxItem) {
+		if (!_listboxItem || _listboxItem.subItems.length < 2) {
 			continue;
 		}
 
-		if (_listboxItem.subItems[0].text === "H" + _level) {
+		if (_listboxItem.subItems[1].text === "H" + _level) {
 			_listboxItem.selected = true;
 		}
 	}
@@ -1551,19 +1577,29 @@ function __defLocalizeStrings() {
 		de: "GREP-Suche"
 	};
 
-	_global.level1Label = {
-		en: "Bookmarks Level 1",
-		de: "Lesezeichen Ebene 1"
+	_global.bookmarkLevel1Label = {
+		en: "1. Bookmarks Level",
+		de: "1. Lesezeichen-Ebene"
 	};
 
-	_global.level2Label = {
-		en: "Bookmarks Level 2",
-		de: "Lesezeichen Ebene 2"
+	_global.bookmarkLevel2Label = {
+		en: "2. Bookmarks Level",
+		de: "2. Lesezeichen-Ebene"
 	};
 
-	_global.level3Label = {
-		en: "Bookmarks Level 3",
-		de: "Lesezeichen Ebene 3"
+	_global.bookmarkLevel3Label = {
+		en: "3. Bookmarks Level",
+		de: "3. Lesezeichen-Ebene"
+	};
+
+	_global.styleNameLabel = {
+		en: "Style Name",
+		de: "Formatname"
+	};
+
+	_global.styleGroupLabel = {
+		en: "Style Group",
+		de: "Formatgruppe"
 	};
 
 	_global.pdfExportTagLabel = {
