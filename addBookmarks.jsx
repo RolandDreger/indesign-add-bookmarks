@@ -25,14 +25,346 @@
 */
 
 
-
-
 var _global = {};
- 
+
+
+/**
+ * Intl Collator class
+ * @param {string} _langCode e.g. de_DE
+ * @param {*} _optionsObj 
+ * 	Options:
+ * 	caseSensitive: boolean; 
+ * 	sortMode: "word" | "letter"; 
+ * 	sortOrder: ascending | descending;
+ * 	ignoredCharacters: string;
+ * 	rankedPunctuations: boolean;
+ * 	rankedBrackets: boolean;
+ * 
+ */
+function IntlCollator(_langCode, _optionsObj) {
+
+	if (!_optionsObj || typeof _optionsObj !== "object") {
+		_optionsObj = {};
+	}
+
+	this.langCode = _langCode;
+
+	/* Sort mode */
+	this.sortMode = _optionsObj.sortMode || "";
+
+	/* Sort order */
+	this.sortOrder = _optionsObj.sortOrder || "";
+	this.isCaseSensitive = (_optionsObj.caseSensitive === true) ? true : false;
+
+	/* Ignored characters */
+	var _ignoreChars = (!_optionsObj.ignoredCharacters) ? "»«›‹\"\'„”“‚‘’" : _optionsObj.ignoredCharacters; /* +±≠~≤≥÷×ø%§¢¶#*&…|·•¬ı†‡◊°º©™® */
+	this.ignoreCharsRegExp = new RegExp("[" + this.__escapeRegExpCharClass(_ignoreChars) + "]", "ig");
+
+	/* Punctuations */
+	var _arePunctuationsRanked = (_optionsObj.rankedPunctuations === true) ? true : false;
+	this.punctuationReplacementChar = ",";
+	this.punctuationChars = (_arePunctuationsRanked) ? ",;.:!?¿¡" : this.punctuationReplacementChar;
+	this.punctuationRegExp = (_arePunctuationsRanked) ? new RegExp("[]", "ig") : new RegExp("[,;.:!?¿¡]", "ig");
+
+	/* Brackets */
+	var _areBracketsRanked = (_optionsObj.rankedBrackets === true) ? true : false;
+	this.bracketsReplacementChar = "(";
+	this.bracketChars = (_areBracketsRanked) ? "([{<>}])" : this.bracketsReplacementChar;
+	this.bracketRegExp = (_areBracketsRanked) ? new RegExp("[]", "ig") : new RegExp("[\\[{<())}>\\]]", "ig");
+
+	/* Word Separator */
+	this.wordSeparator = "∞";
+	this.wordSeparatorsRegExp = new RegExp("[\\s\\-–/&]", "ig");
+
+	this.collationTableMap = {
+		"de_DE": "0123456789 A[Ä]a[ä]BbCcDdEeFfGgHhIiJjKkLlMmNnO[Ö]o[ö]PpQqRrS[ẞ]s[ß]TtU[Ü]u[ü]VvWwXxYyZz@[{SANKT;ST.}]@[{Sankt;St.}]@[{sankt;st.}]",
+		"en_GB": "0123456789 A[ÁÀÂÄÅĀĄĂÆ]a[áàâäåāąăæ]BbC[ÇĆČĊ]c[çćčċ]D[ĎĐ]d[ďđ]E[ÉÈÊËĘĒĔĖĚ]e[éèêëęēĕėě]FfG[ĢĜĞĠ]g[ģĝğġ]H[ĤĦ]h[ĥħ]I[ÍÌÎÏĪĨĬĮİ]i[íìîïīĩĭįi̇]J[Ĵ]j[ĵ]K[Ķ]k[ķ]L[ŁĹĻĽ]l[łĺļľ]MmN[ÑŃŇŅŊ]n[ñńňņŋ]O[ÓÒÔÖŌŎŐØŒ]o[óòôöōŏőøœ]PpQqR[ŔŘŖ]r[ŕřŗ]S[ŚŠŜŞȘẞ]s[śšŝşșß]T[ŢȚŤŦ]t[ţțťŧ]ÞþU[ÚÙÛÜŮŪŲŨŬŰŲ]u[úùûüůūųũŭűų]VvW[Ŵ]w[ŵ]XxY[ŸÝŶ]y[ÿýŷ]Z[ŹŻŽ]z[źżž]",
+		"cz_CZ": "0123456789 A[Á]a[á]BbCcČčD[Ď]d[ď]E[ÉĚ]e[éě]FfGgHh@[{CH}]@[{ch}]I[Í]i[í]JjKkLlMmN[Ň]n[ň]O[Ó]o[ó]PpQqRrŘřSsŠšT[Ť]t[ť]U[ÚŮ]u[úů]VvWwXxY[Ý]y[ý]ZzŽž",
+		"default": "0123456789 A[ÁÀÂÄÅĀĄĂÆ]a[áàâäåāąăæ]BbC[ÇĆČĊ]c[çćčċ]D[ĎĐ]d[ďđ]E[ÉÈÊËĘĒĔĖĚ]e[éèêëęēĕėě]FfG[ĢĜĞĠ]g[ģĝğġ]H[ĤĦ]h[ĥħ]I[ÍÌÎÏĪĨĬĮ]i[íìîïīĩĭį]J[Ĵ]j[ĵ]K[Ķ]k[ķ]L[ŁĹĻĽ]l[łĺļľ]MmN[ÑŃŇŅŊ]n[ñńňņŋ]O[ÓÒÔÖŌŎŐØŒ]o[óòôöōŏőøœ]PpQqR[ŔŘŖ]r[ŕřŗ]S[ŚŠŜŞȘẞ]s[śšŝşșß]T[ŢȚŤŦ]t[ţțťŧ]U[ÚÙÛÜŮŪŲŨŬŰŲ]u[úùûüůūųũŭűų]VvW[Ŵ]w[ŵ]XxY[ŸÝŶ]y[ÿýŷ]Z[ŹŻŽ]z[źżž]"
+	};
+
+	this.compare = this.__createCompareFunction();
+}
+
+
+/**
+ * Compare function as callback in Array sort method
+ * @returns {number}
+ */
+IntlCollator.prototype.__createCompareFunction = function () {
+
+	var _fallbackComparator = function (a, b) {
+		return 0;
+	};
+
+	/* Define collation table */
+	var _collationTable = this.collationTableMap[this.langCode] || this.collationTableMap["default"];
+
+	/* Check: Collation table OK? */
+	var _openCurlyBracketArray = (_collationTable.match(/{/ig) || []);
+	var _closeCurlyBracketArray = (_collationTable.match(/}/ig) || []);
+	var _openSquareBracketArray = (_collationTable.match(/\[/ig) || []);
+	var _closeSquareBracketArray = (_collationTable.match(/\]/ig) || []);
+	if (_openCurlyBracketArray.length !== _closeCurlyBracketArray.length || _openSquareBracketArray.length !== _closeSquareBracketArray.length) {
+		return _fallbackComparator;
+	}
+
+	/* Analyze collation table */
+	var _analyzeResultObj = this.analyzeCollationTable(_collationTable, []);
+	if (!_analyzeResultObj) {
+		return _fallbackComparator;
+	}
+
+	/* Check: Analysis results OK? */
+	var _mergedCollationTable = _analyzeResultObj["mergedCollationTable"];
+	var _replaceObjArray = _analyzeResultObj["replaceObjects"];
+	if (!_mergedCollationTable || _mergedCollationTable.constructor !== String || !_replaceObjArray || !(_replaceObjArray instanceof Array)) {
+		return _fallbackComparator;
+	}
+
+	/**
+	 * Special characters
+	 */
+	_replaceObjArray.push({ "findWhat": this.bracketRegExp, "changeTo": this.bracketsReplacementChar });
+	_replaceObjArray.push({ "findWhat": this.punctuationRegExp, "changeTo": this.punctuationReplacementChar });
+	_replaceObjArray.push({ "findWhat": this.ignoreCharsRegExp, "changeTo": "" });
+
+	/**
+	 * Word separators: spaces, slashes, and forward slashes
+	 */
+	var _targetCollationTable = "";
+	switch (this.sortMode) {
+		/* Word by Word */
+		case "word":
+			_replaceObjArray.push({ "findWhat": this.wordSeparatorsRegExp, "changeTo": this.wordSeparator });
+			_targetCollationTable = this.punctuationChars + this.bracketChars + this.wordSeparator + _mergedCollationTable;
+			break;
+		/* Letter by Letter */
+		case "letter":
+			_replaceObjArray.push({ "findWhat": this.wordSeparatorsRegExp, "changeTo": "" });
+			_targetCollationTable = this.punctuationChars + this.bracketChars + _mergedCollationTable;
+			break;
+		default:
+			return _fallbackComparator;
+	}
+
+	var _isCaseSensitive = this.isCaseSensitive;
+	var _orderValue = (this.sortOrder === "descending") ? -1 : 1;
+
+	/* Array sort function */
+	return function (a, b) {
+
+		var _numberRegExp = new RegExp("\\d+", "");
+
+		/* Convert case */
+		if (!_isCaseSensitive) {
+			a = a.toLowerCase();
+			b = b.toLowerCase();
+		}
+
+		/* Replace Charcters */
+		for (var n = 0; n < _replaceObjArray.length; n += 1) {
+			var _curReplaceObj = _replaceObjArray[n];
+			if (!_curReplaceObj) {
+				continue;
+			}
+			var _findWhat = _curReplaceObj["findWhat"];
+			if (!_findWhat || !(_findWhat instanceof RegExp)) {
+				continue;
+			}
+			var _changeTo = _curReplaceObj["changeTo"];
+			if (_changeTo == null || _changeTo.constructor !== String) {
+				continue;
+			}
+			a = a.replace(_findWhat, _changeTo);
+			b = b.replace(_findWhat, _changeTo);
+		}
+
+		/* Replace numbers */
+		var _aNumArray = a.match(_numberRegExp);
+		var _bNumArray = b.match(_numberRegExp);
+		if (_aNumArray !== null && _bNumArray !== null) {
+
+			var _aNum = Number(_aNumArray[0]);
+			var _bNum = Number(_bNumArray[0]);
+
+			if (_aNum > _bNum) {
+				a = a.replace(_numberRegExp, "2");
+				b = b.replace(_numberRegExp, "1");
+			} else if (_aNum < _bNum) {
+				a = a.replace(_numberRegExp, "1");
+				b = b.replace(_numberRegExp, "2");
+			} else {
+				a = a.replace(_numberRegExp, "1");
+				b = b.replace(_numberRegExp, "1");
+			}
+		}
+
+		if (a === b) {
+			return 0;
+		}
+
+		/* Analyze: sort order */
+		var i = 0;
+		var _min = Math.min(a.length, b.length);
+
+		while (i < _min && a.charAt(i) === b.charAt(i)) {
+			i++;
+		}
+
+		if (i >= _min) {
+			if (a.length === b.length) {
+				return 0;
+			}
+			return (a.length < b.length) ? -_orderValue : _orderValue;
+		}
+
+		var _charAIndex = _targetCollationTable.indexOf(a.charAt(i));
+		var _charBIndex = _targetCollationTable.indexOf(b.charAt(i));
+
+		if (_charAIndex === -1) {
+			return _orderValue;
+		}
+		if (_charBIndex === -1) {
+			return -_orderValue;
+		}
+		if (_charAIndex === _charBIndex) {
+			return 0;
+		}
+
+		return (_charAIndex > _charBIndex) ? _orderValue : - _orderValue;
+	};
+};
+
+
+/**
+ * Analyze collation table
+ * e.g. "&A[ÁÀÂÄÅ}ĀĄĂÆ]BC[ÇĆČĊ]D...s@[{ß;ss}]...y[ÿ]z"
+ * @param {*} _collationTable 
+ * @param {*} _replaceObjArray 
+ * @returns { Array of Objects: [{ "findWhat":Regular Expression, "changeTo":String }] }
+ */
+IntlCollator.prototype.analyzeCollationTable = function (_collationTable, _replaceObjArray) {
+
+	if (!_replaceObjArray || !(_replaceObjArray instanceof Array)) {
+		return false;
+	}
+	if (_collationTable == null || _collationTable.constructor !== String) {
+		return false;
+	}
+
+	var _multipleCharMarker = "@";
+	var _multipleCharMarkerRegExp = new RegExp(_multipleCharMarker, "ig");
+	var _multipleCharSeparator = ";";
+	var _bracketRegExp = new RegExp("\\[[^\\]]*?\\]", "ig");
+
+	var _prevChar;
+	var _singleChar = false;
+	var _multipleChar = false;
+	var _findWhatSingleChar = "";
+	var _findWhatMultipleChar = "";
+	var _changeTo = "";
+
+	for (var i = 0; i < _collationTable.length; i += 1) {
+
+		var _curChar = _collationTable.charAt(i);
+
+		if (_curChar === "[") {
+			_changeTo = _prevChar;
+			_singleChar = true;
+			_multipleChar = false;
+			_findWhatSingleChar = "";
+			continue;
+		}
+		if (_curChar === "]") {
+			if (_findWhatSingleChar !== "") {
+				_replaceObjArray.push({
+					"findWhat": new RegExp("[" + this.__escapeRegExpCharClass(_findWhatSingleChar) + "]", "g"),
+					"changeTo": _changeTo
+				});
+			}
+			_singleChar = false;
+			_multipleChar = false;
+			_findWhatSingleChar = "";
+			continue;
+		}
+
+		if (_curChar === "{") {
+			_singleChar = false;
+			_multipleChar = true;
+			_findWhatMultipleChar = "";
+			continue;
+		}
+		if (_curChar === "}") {
+			if (_findWhatMultipleChar !== "" && _findWhatMultipleChar.indexOf(_multipleCharSeparator) > -1) {
+				var _findChangeArray = _findWhatMultipleChar.split(_multipleCharSeparator);
+				var _changeToString = _findChangeArray[0] || "";
+				var _findWhatString = _findChangeArray[1] || "";
+				_replaceObjArray.push({
+					"findWhat": new RegExp(this.__escapeRegExp(_findWhatString), "g"),
+					"changeTo": _changeToString
+				});
+			}
+			_singleChar = true;
+			_multipleChar = false;
+			_findWhatMultipleChar = "";
+			continue;
+		}
+
+		if (_singleChar == true) {
+			_findWhatSingleChar += _curChar;
+		}
+		if (_multipleChar == true) {
+			_findWhatMultipleChar += _curChar;
+		}
+
+		_prevChar = _curChar;
+	}
+
+	var _mergedCollationTable = _collationTable.replace(_bracketRegExp, "").replace(_multipleCharMarkerRegExp, "");
+
+	return {
+		"mergedCollationTable": _mergedCollationTable,
+		"replaceObjects": _replaceObjArray
+	};
+};
+
+
+/**
+ * Escape regular expression string
+ * @param {string} _input 
+ * @returns 
+ */
+IntlCollator.prototype.__escapeRegExp = function (_input) {
+	if (!_input || _input.constructor !== String) {
+		return "";
+	}
+	return _input.replace(/([\\\^\$\.\|\?\*\+\(\)\[\]\{\}])/g, "\\$1");
+};
+
+
+/**
+ * Escape regular expression character class string
+ * @param {string} _input 
+ * @returns 
+ */
+IntlCollator.prototype.__escapeRegExpCharClass = function (_input) {
+	if (!_input || _input.constructor !== String) {
+		return "";
+	}
+	return _input.replace(/([\\\]\-\^])/g, "\\$1");
+};
+
+
+
+
+
+
+
+
+
+
 __main(); 
- 
-
-
 
 /**
  * Main
@@ -355,10 +687,11 @@ function __showDialog() {
 		if (!_global) {
 			return;
 		}
-		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1);
-		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2);
-		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
-		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
+		var _areSorted = false; /* todo */
+		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
+		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
+		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
+		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1, _areSorted);
 		_bookmarkLevel2Statictext.visible = false;
 		_pStyleLevel2Listbox.visible = false;
 		_bookmarkLevel3Statictext.visible = false;
@@ -386,10 +719,11 @@ function __showDialog() {
 	/**
 	 * Init dialog
 	 */
-	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1);
-	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2);
-	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3);
-	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
+	var _areSorted = false; /* todo */
+	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
+	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
+	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
+	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1, _areSorted);
 
 	_bookmarkLevel2Statictext.visible = false;
 	_pStyleLevel2Listbox.visible = false;
@@ -411,9 +745,10 @@ function __showDialog() {
  * @param {ListBox} _listbox 
  * @param {string} _styleType 
  * @param {number} _level 
+ * @param {boolean} _areSorted default: false
  * @returns 
  */
-function __fillStylesListbox(_listbox, _styleType, _level) {
+function __fillStylesListbox(_listbox, _styleType, _level, _areSorted) {
 
 	if (!_listbox || !(_listbox instanceof ListBox)) {
 		return null;
@@ -423,6 +758,9 @@ function __fillStylesListbox(_listbox, _styleType, _level) {
 	}
 	if (_level === undefined || _level === null || typeof _level !== "number") {
 		return;
+	}
+	if (_areSorted !== true && _areSorted !== false) {
+		_areSorted = false;
 	}
 
 	/* Reset listbox */
@@ -438,6 +776,9 @@ function __fillStylesListbox(_listbox, _styleType, _level) {
 	}
 
 	var _styleObjArray = __getAllStyles(_doc, _styleType);
+	if (_areSorted) {
+		_styleObjArray = __sortStyleObjects(_styleObjArray);
+	}
 
 	for (var s = 0; s < _styleObjArray.length; s += 1) {
 
@@ -618,6 +959,15 @@ function __getSelectedStyleObjects(_listboxArray) {
 
 /**
  * Get all styles
+ * Style Object: 
+ * {
+ * 	"style": InDesign.Style,
+ * 	"path": Array<string>,
+ * 	"exportTags": {
+ *  	pdf: string;
+ * 		epub: string;
+ * 	}
+ * }
  * @param { Document } _doc 
  * @param { "paragraph style" | "character styles" | "object styles" | "table styles" | "cell styles" } _styleType 
  * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTags": { "pdf": string, "epub": string} }> }
@@ -761,6 +1111,58 @@ function __getExportTags(_style) {
 	}
 
 	return _exportTagObj;
+}
+
+/**
+ * Sort styles objects
+ * @param { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTags": { "pdf": string, "epub": string} }> } _styleObjArray
+ * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTags": { "pdf": string, "epub": string} }> } 
+ */
+function __sortStyleObjects(_styleObjArray) {
+
+	if (!_styleObjArray || !(_styleObjArray instanceof Array)) {
+		return [];
+	}
+
+	var _collator = new IntlCollator("default", {
+		caseSensitive: false,
+		sortMode: "word",
+		sortOrder: "ascending"
+	});
+
+	var _sortedStyleObjArray = _styleObjArray.slice().sort(function (_a, _b) {
+
+		if (!_a || !(_a instanceof Object) || !_a.hasOwnProperty("path")) {
+			return -1;
+		}
+		if (!_b || !(_b instanceof Object) || !_b.hasOwnProperty("path")) {
+			return 1;
+		}
+
+		var _aPathArray = _a.path;
+		if (!_aPathArray || !(_aPathArray instanceof Array) || _aPathArray.length === 0) {
+			return -1;
+		}
+		var _bPathArray = _b.path;
+		if (!_bPathArray || !(_bPathArray instanceof Array) || _bPathArray.length === 0) {
+			return 1;
+		}
+
+		var _aName = _aPathArray[_aPathArray.length - 1] || "";
+		var _bName = _bPathArray[_bPathArray.length - 1] || "";
+
+		var _sortOrder = _collator.compare(_aName, _bName);
+		if (_sortOrder !== 0) {
+			return _sortOrder;
+		}
+
+		var _aPath = _aPathArray.join(" ");
+		var _bPath = _bPathArray.join(" ");
+
+		return _collator.compare(_aPath, _bPath);
+	});
+
+	return _sortedStyleObjArray;
 }
 
 
@@ -1503,8 +1905,8 @@ function __createProgressbar() {
 function __defLocalizeStrings() {
 
 	_global.addBookmarks = {
-		en: "Add Bookmarks 2.1",
-		de: "Add Bookmarks 2.1"
+		en: "Add Bookmarks 2.3",
+		de: "Add Bookmarks 2.3"
 	};
 
 	_global.goBackLabel = {
