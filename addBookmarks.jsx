@@ -456,10 +456,12 @@ function __showDialog() {
 	/* Paragraph Styles */
 	var _pStyleTab = _tabPanel.add("tab", undefined, localize(_global.paragraphStyleTabLabel));
 	_pStyleTab.alignChildren = "fill";
-	_pStyleTab.spacing = 15;
+	_pStyleTab.spacing = 0;
 
-	var _bookmarkLevel1Statictext = _pStyleTab.add("statictext", undefined, localize(_global.bookmarkLevel1Label));
-	_bookmarkLevel1Statictext.justify = "center";
+	var _bookmarkLevel1Group = _pStyleTab.add("group");
+	_bookmarkLevel1Group.margins = [5, 0, 5, 0];
+	var _bookmarkLevel1Statictext = _bookmarkLevel1Group.add("statictext", undefined, localize(_global.bookmarkLevel1Label));
+	_bookmarkLevel1Statictext.justify = "left";
 
 	var _pStyleLevel1ListboxOptions = {
 		"numberOfColumns": 3,
@@ -469,17 +471,19 @@ function __showDialog() {
 		"multiselect": true
 	};
 	var _pStyleLevel1Listbox = _pStyleTab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
-	_pStyleLevel1Listbox.minimumSize = [640, 141];
-	_pStyleLevel1Listbox.maximumSize = [640, 141];
+	_pStyleLevel1Listbox.minimumSize = [640, 181];
+	_pStyleLevel1Listbox.maximumSize = [640, 181];
 
 	var _pStyleListboxHelpTextGroup = _pStyleTab.add("group");
 	_pStyleListboxHelpTextGroup.spacing = 40;
-	_pStyleListboxHelpTextGroup.margins = [5, 0, 5, 10];
+	_pStyleListboxHelpTextGroup.margins = [5, 10, 5, 5];
 	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
 	_pStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
 
-	var _bookmarkLevel2Statictext = _pStyleTab.add("statictext", undefined, localize(_global.bookmarkLevel2Label));
-	_bookmarkLevel2Statictext.justify = "center";
+	var _bookmarkLevel2Group = _pStyleTab.add("group");
+	_bookmarkLevel2Group.margins = [5, 10, 5, 0];
+	var _bookmarkLevel2Statictext = _bookmarkLevel2Group.add("statictext", undefined, localize(_global.bookmarkLevel2Label));
+	_bookmarkLevel2Statictext.justify = "left";
 
 	var _pStyleLevel2ListboxOptions = {
 		"numberOfColumns": 3,
@@ -492,8 +496,10 @@ function __showDialog() {
 	_pStyleLevel2Listbox.minimumSize = [640, 141];
 	_pStyleLevel2Listbox.maximumSize = [640, 141];
 
-	var _bookmarkLevel3Statictext = _pStyleTab.add("statictext", undefined, localize(_global.bookmarkLevel3Label));
-	_bookmarkLevel3Statictext.justify = "center";
+	var _bookmarkLevel3Group = _pStyleTab.add("group");
+	_bookmarkLevel3Group.margins = [5, 15, 5, 0];
+	var _bookmarkLevel3Statictext = _bookmarkLevel3Group.add("statictext", undefined, localize(_global.bookmarkLevel3Label));
+	_bookmarkLevel3Statictext.justify = "left";
 
 	var _pStyleLevel3ListboxOptions = {
 		"numberOfColumns": 3,
@@ -507,9 +513,11 @@ function __showDialog() {
 	_pStyleLevel3Listbox.maximumSize = [640, 141];
 
 	var _pStyleActionButtonGroup = _pStyleTab.add("group");
-	_pStyleActionButtonGroup.margins.top = 10;
-	var _selectPDFHeadings = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
-
+	_pStyleActionButtonGroup.margins.top = 15;
+	_pStyleActionButtonGroup.margins.right = 5;
+	var _selectPDFHeadingsButton = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
+	var _sortPStylesCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.sortPStylesCheckboxLabel));
+	_sortPStylesCheckbox.alignment = ["right", "middle"];
 
 	/* Character Styles */
 	var _cStyleTab = _tabPanel.add("tab", undefined, localize(_global.characterStyleTabLabel));
@@ -528,7 +536,7 @@ function __showDialog() {
 
 	var _cStyleListboxHelpTextGroup = _cStyleTab.add("group");
 	_cStyleListboxHelpTextGroup.spacing = 40;
-	_cStyleListboxHelpTextGroup.margins = [5, 0, 5, 10];
+	_cStyleListboxHelpTextGroup.margins = [5, 5, 5, 10];
 	_cStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxMultiselectHelpTip));
 	_cStyleListboxHelpTextGroup.add("statictext", undefined, localize(_global.listBoxDeselectHelpTip));
 
@@ -574,7 +582,6 @@ function __showDialog() {
 	/**
 	 *  Callbacks
 	 */
-	/* Paragraph styles */
 	_pStyleLevel1Listbox.onChange = function () {
 		if (_pStyleLevel1Listbox.selection) {
 			_bookmarkLevel2Statictext.visible = true;
@@ -605,15 +612,17 @@ function __showDialog() {
 		}
 	};
 
-	_selectPDFHeadings.onClick = function () {
+	_selectPDFHeadingsButton.onClick = function () {
 		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1);
 		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2);
 		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3);
 		_parentBookmarkCheck.value = false;
 	};
 
+	_sortPStylesCheckbox.onClick = function () {
+		_refreshButton.notify();
+	};
 
-	/* Parent bookmark */
 	_parentBookmarkCheck.onClick = function () {
 		if (this.value == true) {
 			_parentBookmarkDropdown.show();
@@ -687,7 +696,7 @@ function __showDialog() {
 		if (!_global) {
 			return;
 		}
-		var _areSorted = false; /* todo */
+		var _areSorted = _sortPStylesCheckbox.value;
 		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
 		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
 		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
@@ -719,7 +728,7 @@ function __showDialog() {
 	/**
 	 * Init dialog
 	 */
-	var _areSorted = false; /* todo */
+	var _areSorted = _sortPStylesCheckbox.value;
 	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
 	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
 	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
@@ -2012,6 +2021,11 @@ function __defLocalizeStrings() {
 	_global.selectPDFHeadingsButtonLabel = {
 		en: "Select PDF Headings (PDF)",
 		de: "\u00dcberschriften ausw\u00E4hlen (PDF)"
+	};
+
+	_global.sortPStylesCheckboxLabel = {
+		en: "Sort paragraph styles",
+		de: "Absatzformate sortieren"
 	};
 
 	_global.bookmarksAddedAlert = {
