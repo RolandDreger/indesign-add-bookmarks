@@ -518,6 +518,7 @@ function __showDialog() {
 	var _selectPDFHeadingsButton = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
 	var _sortPStylesCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.sortPStylesCheckboxLabel));
 	_sortPStylesCheckbox.alignment = ["right", "middle"];
+	_sortPStylesCheckbox.helpTip = localize(_global.sortPStylesCheckboxHelpTip);
 
 	/* Character Styles */
 	var _cStyleTab = _tabPanel.add("tab", undefined, localize(_global.characterStyleTabLabel));
@@ -531,8 +532,8 @@ function __showDialog() {
 		"multiselect": true
 	};
 	var _cStyleLevel1Listbox = _cStyleTab.add("listbox", undefined, " ", _cStyleLevel1ListboxOptions);
-	_cStyleLevel1Listbox.minimumSize = [640, 423];
-	_cStyleLevel1Listbox.maximumSize = [640, 423];
+	_cStyleLevel1Listbox.minimumSize = [640, 421];
+	_cStyleLevel1Listbox.maximumSize = [640, 421];
 
 	var _cStyleListboxHelpTextGroup = _cStyleTab.add("group");
 	_cStyleListboxHelpTextGroup.spacing = 40;
@@ -2026,6 +2027,11 @@ function __defLocalizeStrings() {
 	_global.sortPStylesCheckboxLabel = {
 		en: "Sort paragraph styles",
 		de: "Absatzformate sortieren"
+	};
+
+	_global.sortPStylesCheckboxHelpTip = {
+		en: "The paragraph styles are sorted alphabetically. The display is being updated.",
+		de: "Die Absatzformate werden alphabetisch sortiert. Die Anzeige wird aktualisiert."
 	};
 
 	_global.bookmarksAddedAlert = {
