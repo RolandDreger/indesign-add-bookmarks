@@ -8,7 +8,7 @@
 		+ Autor: Roland Dreger 
 		+ Datum: 22. September 2014
 		
-		+ Zuletzt aktualisiert: 7. Juni 2026
+		+ Zuletzt aktualisiert: 18. Juni 2026
 		
 		+ Note
 		
@@ -459,7 +459,7 @@ function __showDialog() {
 	_pStyleTab.spacing = 0;
 
 	var _bookmarkLevel1Group = _pStyleTab.add("group");
-	_bookmarkLevel1Group.margins = [5, 0, 5, 0];
+	_bookmarkLevel1Group.margins = [5, 2, 5, 0];
 	var _bookmarkLevel1Statictext = _bookmarkLevel1Group.add("statictext", undefined, localize(_global.bookmarkLevel1Label));
 	_bookmarkLevel1Statictext.justify = "left";
 
@@ -532,8 +532,8 @@ function __showDialog() {
 		"multiselect": true
 	};
 	var _cStyleLevel1Listbox = _cStyleTab.add("listbox", undefined, " ", _cStyleLevel1ListboxOptions);
-	_cStyleLevel1Listbox.minimumSize = [640, 421];
-	_cStyleLevel1Listbox.maximumSize = [640, 421];
+	_cStyleLevel1Listbox.minimumSize = [640, 561];
+	_cStyleLevel1Listbox.maximumSize = [640, 561];
 
 	var _cStyleListboxHelpTextGroup = _cStyleTab.add("group");
 	_cStyleListboxHelpTextGroup.spacing = 40;
