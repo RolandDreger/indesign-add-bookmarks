@@ -594,10 +594,14 @@ function __showDialog() {
 		if (_pStyleLevel1Listbox.selection) {
 			__deselectStylesListboxItems(_pStyleLevel2Listbox, this.selection);
 			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
-			__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
+			if (_pStyleLevel2Listbox.selection) {
+				__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
+			} else {
+				__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
+			}
 		} else {
-			_pStyleLevel2Listbox.selection = null;
-			_pStyleLevel3Listbox.selection = null;
+			__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
+			__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
 		}
 	};
 
@@ -606,7 +610,7 @@ function __showDialog() {
 			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
 			__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
 		} else {
-			_pStyleLevel3Listbox.selection = null;
+			__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
 		}
 	};
 
@@ -700,7 +704,9 @@ function __showDialog() {
 		var _areSorted = _sortPStylesCheckbox.value;
 		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
 		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
+		__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
 		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
+		__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
 		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1, _areSorted);
 		_grepInputField.text = "";
 		_parentBookmarkCheckbox.value = false;
@@ -728,7 +734,9 @@ function __showDialog() {
 	var _areSorted = _sortPStylesCheckbox.value;
 	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
 	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
+	__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
 	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
+	__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
 	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1, _areSorted);
 
 	/**
@@ -831,7 +839,7 @@ function __deselectStylesListboxItems(_listbox, _selectionArray) {
 	if (!_listbox || !(_listbox instanceof ListBox)) {
 		return null;
 	}
-	if (!_selectionArray || !(_selectionArray instanceof Array)) {
+	if (!_selectionArray || !(_selectionArray instanceof Array || _selectionArray instanceof Collection)) {
 		return;
 	}
 
