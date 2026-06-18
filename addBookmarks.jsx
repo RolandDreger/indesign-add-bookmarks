@@ -516,9 +516,15 @@ function __showDialog() {
 	_pStyleActionButtonGroup.margins.top = 15;
 	_pStyleActionButtonGroup.margins.right = 5;
 	var _selectPDFHeadingsButton = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
+
 	var _sortPStylesCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.sortPStylesCheckboxLabel));
-	_sortPStylesCheckbox.alignment = ["right", "middle"];
+	_sortPStylesCheckbox.alignment = ["right", "bottom"];
 	_sortPStylesCheckbox.helpTip = localize(_global.sortPStylesCheckboxHelpTip);
+
+	var _includeNumberingCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.includeNumberingCheckboxLabel));
+	_includeNumberingCheckbox.alignment = ["right", "bottom"];
+	_includeNumberingCheckbox.helpTip = localize(_global.includeNumberingCheckboxHelpTip);
+
 
 	/* Character Styles */
 	var _cStyleTab = _tabPanel.add("tab", undefined, localize(_global.characterStyleTabLabel));
@@ -555,8 +561,8 @@ function __showDialog() {
 	_parentBookmarkGroup.alignChildren = ["left", "bottom"];
 	_parentBookmarkGroup.spacing = 20;
 
-	var _parentBookmarkCheck = _parentBookmarkGroup.add("checkbox", undefined, localize(_global.parentBookmarkCheckboxLabel));
-	_parentBookmarkCheck.value = false;
+	var _parentBookmarkCheckbox = _parentBookmarkGroup.add("checkbox", undefined, localize(_global.parentBookmarkCheckboxLabel));
+	_parentBookmarkCheckbox.value = false;
 
 	var _parentBookmarkDropdown = _parentBookmarkGroup.add("dropdownlist", undefined, undefined);
 	_parentBookmarkDropdown.preferredSize.width = 140;
@@ -617,14 +623,14 @@ function __showDialog() {
 		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1);
 		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2);
 		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3);
-		_parentBookmarkCheck.value = false;
+		_parentBookmarkCheckbox.value = false;
 	};
 
 	_sortPStylesCheckbox.onClick = function () {
 		_refreshButton.notify();
 	};
 
-	_parentBookmarkCheck.onClick = function () {
+	_parentBookmarkCheckbox.onClick = function () {
 		if (this.value == true) {
 			_parentBookmarkDropdown.show();
 			__fillParentBookmarkDropdown(_parentBookmarkDropdown);
@@ -649,12 +655,15 @@ function __showDialog() {
 
 		/* Parent bookmark */
 		var _parentBookmark;
-		if (_parentBookmarkCheck.value == true) {
+		if (_parentBookmarkCheckbox.value === true) {
 			var _selectedParentBookmark = _parentBookmarkDropdown.selection;
 			if (!!_selectedParentBookmark) {
 				_parentBookmark = _selectedParentBookmark.bookmark;
 			}
 		}
+
+		/* Include paragraph numbering? */
+		var _isNumberingIncluded = (_includeNumberingCheckbox.value) ? true : false;
 
 		var _addedBookmarks = 0;
 		var _argsArray = [];
@@ -664,7 +673,7 @@ function __showDialog() {
 			case _pStyleTab:
 				if (!!_pStyleLevel1Listbox.selection) {
 					var _selectedPStyleObjArray = __getSelectedStyleObjects([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox]);
-					_argsArray = [_selectedPStyleObjArray, _parentBookmark];
+					_argsArray = [_selectedPStyleObjArray, _parentBookmark, _isNumberingIncluded];
 					_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 				}
 				break;
@@ -707,7 +716,7 @@ function __showDialog() {
 		_bookmarkLevel3Statictext.visible = false;
 		_pStyleLevel3Listbox.visible = false;
 		_grepInputField.text = "";
-		_parentBookmarkCheck.value = false;
+		_parentBookmarkCheckbox.value = false;
 		_parentBookmarkDropdown.hide();
 		_ui.text = localize(_global.addBookmarks);
 	};
@@ -1259,6 +1268,10 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 	}
 
 	var _parentBookmark = _doScriptArgumentArray[1];
+	var _isNumberingIncluded = _doScriptArgumentArray[2];
+	if (_isNumberingIncluded === undefined || _isNumberingIncluded === null || typeof _isNumberingIncluded !== "boolean") {
+		_isNumberingIncluded = false;
+	}
 
 	if (app.documents.length === 0 || app.layoutWindows.length === 0) {
 		return [0, 0];
@@ -1322,7 +1335,7 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 					continue;
 				}
 
-				var _bookmark = __addBookmark(_doc, _targetParagraph, _parentBookmark);
+				var _bookmark = __addBookmark(_doc, _targetParagraph, _parentBookmark, _isNumberingIncluded);
 				if (_bookmark && _bookmark.isValid) {
 					_bookmark.insertLabel("level", String(_bookmarkLevel));
 					_bookmarkCounter += 1;
@@ -1587,9 +1600,10 @@ function __makeBookmarksByGREP(_doScriptArgumentArray) {
  * @param {Document} _doc 
  * @param {Text} _destText 
  * @param {Bookmark | undefined } _parentBookmark 
+ * @param {boolean | undefined } _isNumberingIncluded 
  * @returns {Bookmark|null}
  */
-function __addBookmark(_doc, _destText, _parentBookmark) {
+function __addBookmark(_doc, _destText, _parentBookmark, _isNumberingIncluded) {
 
 	if (!_global) {
 		return null;
@@ -1600,17 +1614,30 @@ function __addBookmark(_doc, _destText, _parentBookmark) {
 	if (!_destText || !_destText.hasOwnProperty("contents") || !_destText.isValid) {
 		return null;
 	}
+	if (_isNumberingIncluded === undefined || _isNumberingIncluded === null || typeof _isNumberingIncluded !== "boolean") {
+		_isNumberingIncluded = false;
+	}
 
 	var _parent = _parentBookmark;
 	if (!_parent || !_parent.isValid) {
 		_parent = _doc;
 	}
 
-	var _bookmarkName;
-	var _destTextContents = String(_destText.contents);
+	var _bookmarkName = String(_destText.contents);
 
-	/* ToDo: mehr Zeichen entfernen??? */
-	_bookmarkName = _destTextContents.replace("\n", "").replace("\\s+", " ", "g")
+	/* Paragraph numbering */
+	var _numberingResultText = "";
+	if (_isNumberingIncluded) {
+		var _targetParagraph = _destText.paragraphs.firstItem();
+		if (_targetParagraph.isValid && _targetParagraph.bulletsAndNumberingListType === ListType.NUMBERED_LIST) {
+			_numberingResultText = _targetParagraph.bulletsAndNumberingResultText;
+		}
+	}
+	if (!!_numberingResultText) {
+		_bookmarkName = _numberingResultText + " " + _bookmarkName;
+	}
+
+	_bookmarkName = _bookmarkName.replace("\n", "").replace("[\\s\t]+", " ", "g")
 		.replace("[\x03\x04\x07\x08\x16\x17\x18\x19\u200B\uFEFF\uFFFC\uFFFE\u2011\u2028\u2029\u00AD\u200C\u200D\u200E\u200F\u202A-\u202E\u2063]", "", "g")
 		.replace("\\s+$", "", "")
 		.replace("^\\s+", "", "");
@@ -2032,6 +2059,16 @@ function __defLocalizeStrings() {
 	_global.sortPStylesCheckboxHelpTip = {
 		en: "The paragraph styles are sorted alphabetically. The display is being updated.",
 		de: "Die Absatzformate werden alphabetisch sortiert. Die Anzeige wird aktualisiert."
+	};
+
+	_global.includeNumberingCheckboxLabel = {
+		en: "Include numbering",
+		de: "Nummerierung einbeziehen"
+	};
+
+	_global.includeNumberingCheckboxHelpTip = {
+		en: "Include paragraph numbering for bookmark names.",
+		de: "Bei Erstellung des Namens des Lesezeichens die Nummerierung des Absatzes mit einbeziehen."
 	};
 
 	_global.bookmarksAddedAlert = {
