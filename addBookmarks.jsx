@@ -461,8 +461,8 @@ function __showDialog() {
 	var _pStyleBookmarkLevelTabPanel = _pStyleTab.add("tabbedpanel");
 
 	/* Bookmark level 1 */
-	var _bookmarkLevel1Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel1Label));
-	_bookmarkLevel1Tab.margins = [15, 10, 5, 10];
+	var _pStyleBookmarkLevel1Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel1Label));
+	_pStyleBookmarkLevel1Tab.margins = [15, 10, 5, 10];
 
 	var _pStyleLevel1ListboxOptions = {
 		"numberOfColumns": 3,
@@ -471,13 +471,13 @@ function __showDialog() {
 		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
-	var _pStyleLevel1Listbox = _bookmarkLevel1Tab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
+	var _pStyleLevel1Listbox = _pStyleBookmarkLevel1Tab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
 	_pStyleLevel1Listbox.minimumSize = [640, 361];
 	_pStyleLevel1Listbox.maximumSize = [640, 361];
 
 	/* Bookmark level 2 */
-	var _bookmarkLevel2Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel2Label));
-	_bookmarkLevel2Tab.margins = [15, 10, 5, 10];
+	var _pStyleBookmarkLevel2Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel2Label));
+	_pStyleBookmarkLevel2Tab.margins = [15, 10, 5, 10];
 
 	var _pStyleLevel2ListboxOptions = {
 		"numberOfColumns": 3,
@@ -486,13 +486,13 @@ function __showDialog() {
 		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
-	var _pStyleLevel2Listbox = _bookmarkLevel2Tab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
+	var _pStyleLevel2Listbox = _pStyleBookmarkLevel2Tab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
 	_pStyleLevel2Listbox.minimumSize = [640, 361];
 	_pStyleLevel2Listbox.maximumSize = [640, 361];
 
 	/* Bookmark level 3 */
-	var _bookmarkLevel3Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel3Label));
-	_bookmarkLevel3Tab.margins = [15, 10, 5, 10];
+	var _pStyleBookmarkLevel3Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel3Label));
+	_pStyleBookmarkLevel3Tab.margins = [15, 10, 5, 10];
 
 	var _pStyleLevel3ListboxOptions = {
 		"numberOfColumns": 3,
@@ -501,7 +501,7 @@ function __showDialog() {
 		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
-	var _pStyleLevel3Listbox = _bookmarkLevel3Tab.add("listbox", undefined, " ", _pStyleLevel3ListboxOptions);
+	var _pStyleLevel3Listbox = _pStyleBookmarkLevel3Tab.add("listbox", undefined, " ", _pStyleLevel3ListboxOptions);
 	_pStyleLevel3Listbox.minimumSize = [640, 361];
 	_pStyleLevel3Listbox.maximumSize = [640, 361];
 
