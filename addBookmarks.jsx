@@ -1406,9 +1406,8 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 
 		/* Sort bookmarks */
 		var _areBookmarksSorted = __sortBookmarks();
-
-		/* Nest bookmarks */
 		if (_areBookmarksSorted) {
+			/* Nest bookmarks */
 			__nestBookmarks(_doc, _parentBookmark);
 		}
 	}
