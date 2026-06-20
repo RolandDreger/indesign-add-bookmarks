@@ -8,7 +8,7 @@
 		+ Autor: Roland Dreger 
 		+ Datum: 22. September 2014
 		
-		+ Zuletzt aktualisiert: 18. Juni 2026
+		+ Zuletzt aktualisiert: 20. Juni 2026
 		
 		+ Note
 		
@@ -466,14 +466,14 @@ function __showDialog() {
 
 	var _pStyleLevel1ListboxOptions = {
 		"numberOfColumns": 3,
-		"columnWidths": [250, 250, 120],
+		"columnWidths": [260, 260, 120],
 		"showHeaders": true,
 		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
 	var _pStyleLevel1Listbox = _pStyleBookmarkLevel1Tab.add("listbox", undefined, " ", _pStyleLevel1ListboxOptions);
-	_pStyleLevel1Listbox.minimumSize = [640, 361];
-	_pStyleLevel1Listbox.maximumSize = [640, 361];
+	_pStyleLevel1Listbox.minimumSize = [660, 361];
+	_pStyleLevel1Listbox.maximumSize = [660, 361];
 
 	/* Bookmark level 2 */
 	var _pStyleBookmarkLevel2Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel2Label));
@@ -481,14 +481,14 @@ function __showDialog() {
 
 	var _pStyleLevel2ListboxOptions = {
 		"numberOfColumns": 3,
-		"columnWidths": [250, 250, 120],
+		"columnWidths": [260, 260, 120],
 		"showHeaders": true,
 		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
 	var _pStyleLevel2Listbox = _pStyleBookmarkLevel2Tab.add("listbox", undefined, " ", _pStyleLevel2ListboxOptions);
-	_pStyleLevel2Listbox.minimumSize = [640, 361];
-	_pStyleLevel2Listbox.maximumSize = [640, 361];
+	_pStyleLevel2Listbox.minimumSize = [660, 361];
+	_pStyleLevel2Listbox.maximumSize = [660, 361];
 
 	/* Bookmark level 3 */
 	var _pStyleBookmarkLevel3Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel3Label));
@@ -496,14 +496,14 @@ function __showDialog() {
 
 	var _pStyleLevel3ListboxOptions = {
 		"numberOfColumns": 3,
-		"columnWidths": [250, 250, 120],
+		"columnWidths": [260, 260, 120],
 		"showHeaders": true,
 		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
 		"multiselect": true
 	};
 	var _pStyleLevel3Listbox = _pStyleBookmarkLevel3Tab.add("listbox", undefined, " ", _pStyleLevel3ListboxOptions);
-	_pStyleLevel3Listbox.minimumSize = [640, 361];
-	_pStyleLevel3Listbox.maximumSize = [640, 361];
+	_pStyleLevel3Listbox.minimumSize = [660, 361];
+	_pStyleLevel3Listbox.maximumSize = [660, 361];
 
 	/* Paragraph style help tip */
 	var _pStyleListboxHelpTextGroup = _pStyleTab.add("group");
@@ -515,11 +515,17 @@ function __showDialog() {
 	/* Paragraph style actions */
 	var _pStyleActionButtonGroup = _pStyleTab.add("group");
 	_pStyleActionButtonGroup.margins = [5, 10, 5, 5];
+	_pStyleActionButtonGroup.spacing = 15;
+
 	var _selectPDFHeadingsButton = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
 
 	var _sortPStylesCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.sortPStylesCheckboxLabel));
 	_sortPStylesCheckbox.alignment = ["right", "bottom"];
 	_sortPStylesCheckbox.helpTip = localize(_global.sortPStylesCheckboxHelpTip);
+
+	var _sortTagsCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.sortTagsCheckboxLabel));
+	_sortTagsCheckbox.alignment = ["right", "bottom"];
+	_sortTagsCheckbox.helpTip = localize(_global.sortTagsCheckboxHelpTip);
 
 	var _includeNumberingCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.includeNumberingCheckboxLabel));
 	_includeNumberingCheckbox.alignment = ["right", "bottom"];
@@ -532,14 +538,14 @@ function __showDialog() {
 
 	var _cStyleLevel1ListboxOptions = {
 		"numberOfColumns": 2,
-		"columnWidths": [250, 370],
+		"columnWidths": [280, 360],
 		"showHeaders": true,
 		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel)],
 		"multiselect": true
 	};
 	var _cStyleLevel1Listbox = _cStyleTab.add("listbox", undefined, " ", _cStyleLevel1ListboxOptions);
-	_cStyleLevel1Listbox.minimumSize = [665, 461];
-	_cStyleLevel1Listbox.maximumSize = [665, 461];
+	_cStyleLevel1Listbox.minimumSize = [685, 461];
+	_cStyleLevel1Listbox.maximumSize = [685, 461];
 
 	var _cStyleListboxHelpTextGroup = _cStyleTab.add("group");
 	_cStyleListboxHelpTextGroup.spacing = 20;
@@ -622,6 +628,12 @@ function __showDialog() {
 	};
 
 	_sortPStylesCheckbox.onClick = function () {
+		_sortTagsCheckbox.value = false;
+		_refreshButton.notify();
+	};
+
+	_sortTagsCheckbox.onClick = function () {
+		_sortPStylesCheckbox.value = false;
 		_refreshButton.notify();
 	};
 
@@ -701,13 +713,13 @@ function __showDialog() {
 		if (!_global) {
 			return;
 		}
-		var _areSorted = _sortPStylesCheckbox.value;
-		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
-		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
+		var _sortMode = (_sortPStylesCheckbox.value && "style") || (_sortTagsCheckbox.value && "tag") || "none";
+		__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _sortMode);
+		__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _sortMode);
 		__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
-		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
+		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _sortMode);
 		__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
-		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1, _areSorted);
+		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
 		_grepInputField.text = "";
 		_parentBookmarkCheckbox.value = false;
 		_parentBookmarkDropdown.hide();
@@ -731,13 +743,13 @@ function __showDialog() {
 	/**
 	 * Init dialog
 	 */
-	var _areSorted = _sortPStylesCheckbox.value;
-	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _areSorted);
-	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _areSorted);
+	var _sortMode = (_sortPStylesCheckbox.value && "style") || (_sortTagsCheckbox.value && "tag") || "none";
+	__fillStylesListbox(_pStyleLevel1Listbox, "paragraph styles", 1, _sortMode);
+	__fillStylesListbox(_pStyleLevel2Listbox, "paragraph styles", 2, _sortMode);
 	__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
-	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _areSorted);
+	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _sortMode);
 	__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
-	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1, _areSorted);
+	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
 
 	/**
 	 * Show dialog
@@ -750,13 +762,13 @@ function __showDialog() {
 
 /**
  * Fill style listbox
- * @param {ListBox} _listbox 
- * @param {string} _styleType 
- * @param {number} _level 
- * @param {boolean} _areSorted default: false
+ * @param { ListBox } _listbox 
+ * @param { string } _styleType 
+ * @param { number } _level 
+ * @param { "style" | "tag" |"none" } _sortMode optional; default: none
  * @returns 
  */
-function __fillStylesListbox(_listbox, _styleType, _level, _areSorted) {
+function __fillStylesListbox(_listbox, _styleType, _level, _sortMode) {
 
 	if (!_listbox || !(_listbox instanceof ListBox)) {
 		return null;
@@ -767,8 +779,8 @@ function __fillStylesListbox(_listbox, _styleType, _level, _areSorted) {
 	if (_level === undefined || _level === null || typeof _level !== "number") {
 		return;
 	}
-	if (_areSorted !== true && _areSorted !== false) {
-		_areSorted = false;
+	if (!_sortMode || typeof _sortMode !== "string") {
+		_sortMode = "none";
 	}
 
 	/* Reset listbox */
@@ -784,8 +796,13 @@ function __fillStylesListbox(_listbox, _styleType, _level, _areSorted) {
 	}
 
 	var _styleObjArray = __getAllStyles(_doc, _styleType);
-	if (_areSorted) {
-		_styleObjArray = __sortStyleObjects(_styleObjArray);
+	switch (_sortMode) {
+		case "style":
+			_styleObjArray = __sortStyleObjectsByName(_styleObjArray);
+			break;
+		case "tag":
+			_styleObjArray = __sortStyleObjectsByTag(_styleObjArray, "pdf");
+			break;
 	}
 
 	for (var s = 0; s < _styleObjArray.length; s += 1) {
@@ -817,7 +834,7 @@ function __fillStylesListbox(_listbox, _styleType, _level, _areSorted) {
 			_listItem.subItems[0].text = _stylePath;
 		}
 		if (_listItem.subItems[1]) {
-			var _pdfExportTag = _styleObj.exportTags.pdf || "";
+			var _pdfExportTag = _styleObj.exportTag.pdf || "";
 			_listItem.subItems[1].text = _pdfExportTag;
 		}
 
@@ -971,14 +988,14 @@ function __getSelectedStyleObjects(_listboxArray) {
  * {
  * 	"style": InDesign.Style,
  * 	"path": Array<string>,
- * 	"exportTags": {
+ * 	"exportTag": {
  *  	pdf: string;
  * 		epub: string;
  * 	}
  * }
  * @param { Document } _doc 
  * @param { "paragraph style" | "character styles" | "object styles" | "table styles" | "cell styles" } _styleType 
- * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTags": { "pdf": string, "epub": string} }> }
+ * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTag": { "pdf": string, "epub": string} }> }
  */
 function __getAllStyles(_doc, _styleType) {
 
@@ -1039,7 +1056,7 @@ function __getAllStyles(_doc, _styleType) {
 		_styleObjArray.push({
 			"style": _style,
 			"path": _stylePathArray,
-			"exportTags": _exportTagObj
+			"exportTag": _exportTagObj
 		});
 	}
 
@@ -1122,11 +1139,11 @@ function __getExportTags(_style) {
 }
 
 /**
- * Sort styles objects
- * @param { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTags": { "pdf": string, "epub": string} }> } _styleObjArray
- * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTags": { "pdf": string, "epub": string} }> } 
+ * Sort styles objects by name of style
+ * @param { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTag": { "pdf": string, "epub": string} }> } _styleObjArray
+ * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTag": { "pdf": string, "epub": string} }> } 
  */
-function __sortStyleObjects(_styleObjArray) {
+function __sortStyleObjectsByName(_styleObjArray) {
 
 	if (!_styleObjArray || !(_styleObjArray instanceof Array)) {
 		return [];
@@ -1141,19 +1158,19 @@ function __sortStyleObjects(_styleObjArray) {
 	var _sortedStyleObjArray = _styleObjArray.slice().sort(function (_a, _b) {
 
 		if (!_a || !(_a instanceof Object) || !_a.hasOwnProperty("path")) {
-			return -1;
+			return 1;
 		}
 		if (!_b || !(_b instanceof Object) || !_b.hasOwnProperty("path")) {
-			return 1;
+			return -1;
 		}
 
 		var _aPathArray = _a.path;
 		if (!_aPathArray || !(_aPathArray instanceof Array) || _aPathArray.length === 0) {
-			return -1;
+			return 1;
 		}
 		var _bPathArray = _b.path;
 		if (!_bPathArray || !(_bPathArray instanceof Array) || _bPathArray.length === 0) {
-			return 1;
+			return -1;
 		}
 
 		var _aName = _aPathArray[_aPathArray.length - 1] || "";
@@ -1168,6 +1185,48 @@ function __sortStyleObjects(_styleObjArray) {
 		var _bPath = _bPathArray.join(" ");
 
 		return _collator.compare(_aPath, _bPath);
+	});
+
+	return _sortedStyleObjArray;
+}
+
+/**
+ * Sort styles objects by export tag
+ * @param { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTag": { "pdf": string, "epub": string} }> } _styleObjArray
+ * @param { "pdf" | "epub" }
+ * @returns { Array<{ "style": ParagraphStyle | CharacterStyle | ObjectStyle | TableStyle | CellStyle, "path": Array<string>, "exportTag": { "pdf": string, "epub": string} }> } 
+ */
+function __sortStyleObjectsByTag(_styleObjArray, _tagType) {
+
+	if (!_styleObjArray || !(_styleObjArray instanceof Array)) {
+		return [];
+	}
+
+	var _collator = new IntlCollator("default", {
+		caseSensitive: false,
+		sortMode: "letter",
+		sortOrder: "ascending"
+	});
+
+	var _sortedStyleObjArray = _styleObjArray.slice().sort(function (_a, _b) {
+
+		if (!_a || !(_a instanceof Object) || !_a.hasOwnProperty("exportTag")) {
+			return 1;
+		}
+		if (!_b || !(_b instanceof Object) || !_b.hasOwnProperty("exportTag")) {
+			return -1;
+		}
+
+		var _aTag = _a.exportTag[_tagType];
+		if (!_aTag || typeof _aTag !== "string") {
+			return 1;
+		}
+		var _bTag = _b.exportTag[_tagType];
+		if (!_bTag || typeof _bTag !== "string") {
+			return -1;
+		}
+
+		return _collator.compare(_aTag, _bTag);
 	});
 
 	return _sortedStyleObjArray;
@@ -1931,8 +1990,8 @@ function __createProgressbar() {
 function __defLocalizeStrings() {
 
 	_global.addBookmarks = {
-		en: "Add Bookmarks 2.3",
-		de: "Add Bookmarks 2.3"
+		en: "Add Bookmarks 2.4",
+		de: "Add Bookmarks 2.4"
 	};
 
 	_global.goBackLabel = {
@@ -2041,13 +2100,23 @@ function __defLocalizeStrings() {
 	};
 
 	_global.sortPStylesCheckboxLabel = {
-		en: "Sort paragraph styles",
-		de: "Absatzformate sortieren"
+		en: "Sort styles",
+		de: "Formate sortieren"
 	};
 
 	_global.sortPStylesCheckboxHelpTip = {
 		en: "The paragraph styles are sorted alphabetically. The display is being updated.",
 		de: "Die Absatzformate werden alphabetisch sortiert. Die Anzeige wird aktualisiert."
+	};
+
+	_global.sortTagsCheckboxLabel = {
+		en: "Sort tags",
+		de: "Tags sortieren"
+	};
+
+	_global.sortTagsCheckboxHelpTip = {
+		en: "The export tags are sorted alphabetically. The display is being updated.",
+		de: "Die Export-Tags werden alphabetisch sortiert. Die Anzeige wird aktualisiert."
 	};
 
 	_global.includeNumberingCheckboxLabel = {
@@ -2057,7 +2126,7 @@ function __defLocalizeStrings() {
 
 	_global.includeNumberingCheckboxHelpTip = {
 		en: "Include paragraph numbering for bookmark names.",
-		de: "Bei Erstellung des Namens des Lesezeichens die Nummerierung des Absatzes mit einbeziehen."
+		de: "Für die Erstellung des Lesezeichen-Namens wird die Nummerierung des Absatzes mit einbezogen."
 	};
 
 	_global.bookmarksAddedAlert = {
