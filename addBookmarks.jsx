@@ -515,21 +515,29 @@ function __showDialog() {
 	/* Paragraph style actions */
 	var _pStyleActionButtonGroup = _pStyleTab.add("group");
 	_pStyleActionButtonGroup.margins = [5, 10, 5, 5];
-	_pStyleActionButtonGroup.spacing = 15;
+	_pStyleActionButtonGroup.spacing = 30;
 
 	var _selectPDFHeadingsButton = _pStyleActionButtonGroup.add("button", undefined, localize(_global.selectPDFHeadingsButtonLabel));
 
-	var _sortPStylesCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.sortPStylesCheckboxLabel));
-	_sortPStylesCheckbox.alignment = ["right", "bottom"];
+	var _includeNumberingGroup = _pStyleActionButtonGroup.add("group");
+	_includeNumberingGroup.alignment = ["right", "bottom"];
+	_includeNumberingGroup.alignChildren = ["left", "top"];
+
+	var _includeNumberingCheckbox = _includeNumberingGroup.add("checkbox", undefined, localize(_global.includeNumberingCheckboxLabel));
+	_includeNumberingCheckbox.helpTip = localize(_global.includeNumberingCheckboxHelpTip);
+
+	var _sortOptionGroup = _pStyleActionButtonGroup.add("group");
+	_sortOptionGroup.alignment = ["right", "bottom"];
+	_sortOptionGroup.alignChildren = ["left", "top"];
+
+	_sortOptionGroup.add("statictext", undefined, localize(_global.sortOptionLabel) + ":");
+
+	var _sortPStylesCheckbox = _sortOptionGroup.add("checkbox", undefined, localize(_global.sortPStylesCheckboxLabel));
 	_sortPStylesCheckbox.helpTip = localize(_global.sortPStylesCheckboxHelpTip);
 
-	var _sortTagsCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.sortTagsCheckboxLabel));
+	var _sortTagsCheckbox = _sortOptionGroup.add("checkbox", undefined, localize(_global.sortTagsCheckboxLabel));
 	_sortTagsCheckbox.alignment = ["right", "bottom"];
 	_sortTagsCheckbox.helpTip = localize(_global.sortTagsCheckboxHelpTip);
-
-	var _includeNumberingCheckbox = _pStyleActionButtonGroup.add("checkbox", undefined, localize(_global.includeNumberingCheckboxLabel));
-	_includeNumberingCheckbox.alignment = ["right", "bottom"];
-	_includeNumberingCheckbox.helpTip = localize(_global.includeNumberingCheckboxHelpTip);
 
 
 	/* Character Styles */
@@ -2099,24 +2107,29 @@ function __defLocalizeStrings() {
 		de: "\u00dcberschriften ausw\u00E4hlen (PDF)"
 	};
 
+	_global.sortOptionLabel = {
+		en: "Sort",
+		de: "Sortieren"
+	};
+
 	_global.sortPStylesCheckboxLabel = {
-		en: "Sort styles",
-		de: "Formate sortieren"
+		en: "Style Name",
+		de: "Formatname"
 	};
 
 	_global.sortPStylesCheckboxHelpTip = {
-		en: "The paragraph styles are sorted alphabetically. The display is being updated.",
-		de: "Die Absatzformate werden alphabetisch sortiert. Die Anzeige wird aktualisiert."
+		en: "Sort the list alphabetically by paragraph style name. (The display will update as you do so.)",
+		de: "Die Liste anhand des Absatzformatnames alphabetisch sortieren. (Die Anzeige wird dabei aktualisiert.)"
 	};
 
 	_global.sortTagsCheckboxLabel = {
-		en: "Sort tags",
-		de: "Tags sortieren"
+		en: "Tag",
+		de: "Tag"
 	};
 
 	_global.sortTagsCheckboxHelpTip = {
-		en: "The export tags are sorted alphabetically. The display is being updated.",
-		de: "Die Export-Tags werden alphabetisch sortiert. Die Anzeige wird aktualisiert."
+		en: "Sort the list attached to the export tag alphabetically. (The display will be updated as you do so.)",
+		de: "Die Liste anhand des Export-Tags alphabetisch sortieren. (Die Anzeige wird dabei aktualisiert.)"
 	};
 
 	_global.includeNumberingCheckboxLabel = {
@@ -2126,7 +2139,7 @@ function __defLocalizeStrings() {
 
 	_global.includeNumberingCheckboxHelpTip = {
 		en: "Include paragraph numbering for bookmark names.",
-		de: "Für die Erstellung des Lesezeichen-Namens wird die Nummerierung des Absatzes mit einbezogen."
+		de: "Für den Namen des Lesezeichens die Nummerierung des Absatzes mit einbeziehen."
 	};
 
 	_global.bookmarksAddedAlert = {
