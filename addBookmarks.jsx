@@ -1438,7 +1438,7 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 
 				var _bookmark = __addBookmark(_doc, _targetParagraph, _parentBookmark, _isNumberingIncluded);
 				if (_bookmark && _bookmark.isValid) {
-					_bookmark.insertLabel("level", String(_bookmarkLevel));
+					_bookmark.insertLabel("addBookmark:level", String(_bookmarkLevel));
 					_bookmarkCounter += 1;
 				} else {
 					_errorCounter += 1;
@@ -1510,7 +1510,7 @@ function __nestBookmarks(_doc, _parent) {
 			continue;
 		}
 
-		var _bookmarkLevel = _bookmark.extractLabel("level");
+		var _bookmarkLevel = _bookmark.extractLabel("addBookmark:level");
 		if (!_bookmarkLevel) {
 			continue;
 		}
@@ -1537,7 +1537,7 @@ function __nestBookmarks(_doc, _parent) {
 
 		/* Reset script label */
 		try {
-			_bookmark.insertLabel("level", "");
+			_bookmark.insertLabel("addBookmark:level", "");
 		} catch (_error) {
 			/* $.writeln(_error.message; */
 		}
