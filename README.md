@@ -18,6 +18,13 @@ The “addBookmarks.jsx” script automatically inserts bookmarks into an Adobe 
 
 Click “Refresh” if you've switched documents while the dialog box is open or if you've created a new style.
 
+## Delete Unused Text Anchors
+
+The script uses text anchors when creating bookmarks to allow jumping to the desired location in the text. If the bookmarks are deleted manually (instead of using the “Undo”), these destinations remain in the document. They can be used to create bookmarks manually or removed entirely:
+
+1. Go to: Window → Interactive → Hyperlinks 
+2. Select the panel menu icon → Delete Unused Destinations
+
 # Support
 
 You can support the script development via **PayPal** [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=roland%2edreger%40a1%2enet&lc=AT&item_name=Roland%20Dreger%20%2f%20Donation%20for%20script%20development%20add-bookmarks&currency_code=EUR&bn=PP%2dDonationsBF%3abtn_donateCC_LG%2egif%3aNonHosted)  or **GitHub Sponsors** (button in the right sidebar). 
