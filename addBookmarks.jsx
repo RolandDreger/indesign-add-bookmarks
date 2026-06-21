@@ -1466,7 +1466,10 @@ function __makeBookmarksByParagraphStyles(_doScriptArgumentArray) {
 }
 
 
-/* Sort bookmarks */
+/**
+ * Sort bookmarks
+ * @returns 
+ */
 function __sortBookmarks() {
 
 	try {
@@ -1480,7 +1483,12 @@ function __sortBookmarks() {
 }
 
 
-/* Nest bookmarks */
+/**
+ * Nest bookmarks
+ * @param {Document} _doc 
+ * @param {Bookmark|undefined} _parent 
+ * @returns 
+ */
 function __nestBookmarks(_doc, _parent) {
 
 	if (!_doc || !_doc.isValid) {
