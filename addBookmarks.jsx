@@ -545,7 +545,8 @@ function __showDialog() {
 	_sortOptionGroup.alignment = ["right", "bottom"];
 	_sortOptionGroup.alignChildren = ["left", "top"];
 
-	_sortOptionGroup.add("statictext", undefined, localize(_global.sortOptionLabel) + ":");
+	var _sortOptionLabelStatictext = _sortOptionGroup.add("statictext", undefined, localize(_global.sortOptionLabel) + ":");
+	_sortOptionLabelStatictext.alignment = ["left", "top"];
 
 	var _sortPStylesCheckbox = _sortOptionGroup.add("checkbox", undefined, localize(_global.sortPStylesCheckboxLabel));
 	_sortPStylesCheckbox.helpTip = localize(_global.sortPStylesCheckboxHelpTip);
