@@ -505,6 +505,21 @@ function __showDialog() {
 	_pStyleLevel3Listbox.minimumSize = [660, 361];
 	_pStyleLevel3Listbox.maximumSize = [660, 361];
 
+	/* Bookmark level 4 */
+	var _pStyleBookmarkLevel4Tab = _pStyleBookmarkLevelTabPanel.add("tab", undefined, localize(_global.bookmarkLevel4Label));
+	_pStyleBookmarkLevel4Tab.margins = [15, 10, 5, 10];
+
+	var _pStyleLevel4ListboxOptions = {
+		"numberOfColumns": 3,
+		"columnWidths": [260, 260, 120],
+		"showHeaders": true,
+		"columnTitles": [localize(_global.styleNameLabel), localize(_global.styleGroupLabel), localize(_global.pdfExportTagLabel)],
+		"multiselect": true
+	};
+	var _pStyleLevel4Listbox = _pStyleBookmarkLevel4Tab.add("listbox", undefined, " ", _pStyleLevel4ListboxOptions);
+	_pStyleLevel4Listbox.minimumSize = [660, 361];
+	_pStyleLevel4Listbox.maximumSize = [660, 361];
+
 	/* Paragraph style help tip */
 	var _pStyleListboxHelpTextGroup = _pStyleTab.add("group");
 	_pStyleListboxHelpTextGroup.margins = [18, 10, 5, 18];
@@ -606,16 +621,24 @@ function __showDialog() {
 	 */
 	_pStyleLevel1Listbox.onChange = function () {
 		if (_pStyleLevel1Listbox.selection) {
-			__deselectStylesListboxItems(_pStyleLevel2Listbox, this.selection);
-			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
+			var _combinedSelectionArray = _pStyleLevel1Listbox.selection;
+			__deselectStylesListboxItems(_pStyleLevel2Listbox, _combinedSelectionArray);
 			if (_pStyleLevel2Listbox.selection) {
+				_combinedSelectionArray = _combinedSelectionArray.concat(_pStyleLevel2Listbox.selection);
 				__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
 			} else {
 				__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
 			}
+			if (_pStyleLevel3Listbox.selection) {
+				_combinedSelectionArray = _combinedSelectionArray.concat(_pStyleLevel3Listbox.selection);
+				__deselectStylesListboxItems(_pStyleLevel4Listbox, _combinedSelectionArray);
+			} else {
+				__deselectStylesListboxItems(_pStyleLevel4Listbox, _pStyleLevel4Listbox.items); /* disable all */
+			}
 		} else {
 			__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
 			__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
+			__deselectStylesListboxItems(_pStyleLevel4Listbox, _pStyleLevel4Listbox.items); /* disable all */
 		}
 	};
 
@@ -623,8 +646,24 @@ function __showDialog() {
 		if (_pStyleLevel2Listbox.selection) {
 			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection);
 			__deselectStylesListboxItems(_pStyleLevel3Listbox, _combinedSelectionArray);
+			if (_pStyleLevel3Listbox.selection) {
+				var _combinedSelectionArray = _combinedSelectionArray.concat(_pStyleLevel3Listbox.selection);
+				__deselectStylesListboxItems(_pStyleLevel4Listbox, _combinedSelectionArray);
+			} else {
+				__deselectStylesListboxItems(_pStyleLevel4Listbox, _pStyleLevel4Listbox.items); /* disable all */
+			}
 		} else {
 			__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
+			__deselectStylesListboxItems(_pStyleLevel4Listbox, _pStyleLevel4Listbox.items); /* disable all */
+		}
+	};
+
+	_pStyleLevel3Listbox.onChange = function () {
+		if (_pStyleLevel3Listbox.selection) {
+			var _combinedSelectionArray = [].concat(_pStyleLevel1Listbox.selection, _pStyleLevel2Listbox.selection, _pStyleLevel3Listbox.selection);
+			__deselectStylesListboxItems(_pStyleLevel4Listbox, _combinedSelectionArray);
+		} else {
+			__deselectStylesListboxItems(_pStyleLevel4Listbox, _pStyleLevel4Listbox.items); /* disable all */
 		}
 	};
 
@@ -632,6 +671,7 @@ function __showDialog() {
 		__selectListboxItemsByExportTags(_pStyleLevel1Listbox, 1);
 		__selectListboxItemsByExportTags(_pStyleLevel2Listbox, 2);
 		__selectListboxItemsByExportTags(_pStyleLevel3Listbox, 3);
+		__selectListboxItemsByExportTags(_pStyleLevel4Listbox, 4);
 		_parentBookmarkCheckbox.value = false;
 	};
 
@@ -687,7 +727,7 @@ function __showDialog() {
 			/* Paragraph Style */
 			case _pStyleTab:
 				if (!!_pStyleLevel1Listbox.selection) {
-					var _selectedPStyleObjArray = __getSelectedStyleObjects([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox]);
+					var _selectedPStyleObjArray = __getSelectedStyleObjects([_pStyleLevel1Listbox, _pStyleLevel2Listbox, _pStyleLevel3Listbox, _pStyleLevel4Listbox]);
 					_argsArray = [_selectedPStyleObjArray, _parentBookmark, _isNumberingIncluded];
 					_addedBookmarks = app.doScript(__makeBookmarksByParagraphStyles, ScriptLanguage.JAVASCRIPT, _argsArray, UndoModes.ENTIRE_SCRIPT, localize(_global.goBackLabel));
 				}
@@ -727,6 +767,8 @@ function __showDialog() {
 		__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
 		__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _sortMode);
 		__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
+		__fillStylesListbox(_pStyleLevel4Listbox, "paragraph styles", 4, _sortMode);
+		__deselectStylesListboxItems(_pStyleLevel4Listbox, _pStyleLevel4Listbox.items); /* disable all */
 		__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
 		_grepInputField.text = "";
 		_parentBookmarkCheckbox.value = false;
@@ -757,7 +799,10 @@ function __showDialog() {
 	__deselectStylesListboxItems(_pStyleLevel2Listbox, _pStyleLevel2Listbox.items); /* disable all */
 	__fillStylesListbox(_pStyleLevel3Listbox, "paragraph styles", 3, _sortMode);
 	__deselectStylesListboxItems(_pStyleLevel3Listbox, _pStyleLevel3Listbox.items); /* disable all */
+	__fillStylesListbox(_pStyleLevel4Listbox, "paragraph styles", 4, _sortMode);
+	__deselectStylesListboxItems(_pStyleLevel4Listbox, _pStyleLevel4Listbox.items); /* disable all */
 	__fillStylesListbox(_cStyleLevel1Listbox, "character styles", 1);
+
 
 	/**
 	 * Show dialog
@@ -2072,18 +2117,23 @@ function __defLocalizeStrings() {
 	};
 
 	_global.bookmarkLevel1Label = {
-		en: "1. Bookmarks Level",
-		de: "1. Lesezeichen-Ebene"
+		en: "Bookmarks Level 1",
+		de: "Lesezeichen Ebene 1"
 	};
 
 	_global.bookmarkLevel2Label = {
-		en: "2. Bookmarks Level",
-		de: "2. Lesezeichen-Ebene"
+		en: "Level 2",
+		de: "Ebene 2"
 	};
 
 	_global.bookmarkLevel3Label = {
-		en: "3. Bookmarks Level",
-		de: "3. Lesezeichen-Ebene"
+		en: "Level 3",
+		de: "Ebene 3"
+	};
+
+	_global.bookmarkLevel4Label = {
+		en: "Level 4",
+		de: "Ebene 4"
 	};
 
 	_global.styleNameLabel = {
