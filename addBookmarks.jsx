@@ -1500,47 +1500,96 @@ function __nestBookmarks(_doc, _parent) {
 
 	var _leve1Bookmark;
 	var _leve2Bookmark;
+	var _leve3Bookmark;
 
 	var _bookmarkArray = _parent.bookmarks.everyItem().getElements();
 
 	for (var i = 0; i < _bookmarkArray.length; i++) {
 
-		var _bookmark = _bookmarkArray[i];
-		if (!_bookmark || !_bookmark.isValid) {
+		var _targetBookmark = _bookmarkArray[i];
+		if (!_targetBookmark || !_targetBookmark.isValid) {
 			continue;
 		}
 
-		var _bookmarkLevel = _bookmark.extractLabel("addBookmark:level");
+		var _bookmarkLevel = _targetBookmark.extractLabel("addBookmark:level");
 		if (!_bookmarkLevel) {
 			continue;
 		}
 
 		switch (Number(_bookmarkLevel)) {
 			case 1:
-				_leve1Bookmark = _bookmark;
+				_leve1Bookmark = _targetBookmark;
 				_leve2Bookmark = null;
+				_leve3Bookmark = null;
 				break;
 			case 2:
-				_leve2Bookmark = _bookmark;
+				_leve2Bookmark = _targetBookmark;
+				_leve3Bookmark = null;
 				if (_leve1Bookmark && _leve1Bookmark.isValid) {
-					_bookmark.move(LocationOptions.AT_END, _leve1Bookmark);
+					__moveBookmark(_targetBookmark, _leve1Bookmark);
 				}
 				break;
 			case 3:
+				_leve3Bookmark = _targetBookmark;
 				if (_leve2Bookmark && _leve2Bookmark.isValid) {
-					_bookmark.move(LocationOptions.AT_END, _leve2Bookmark);
+					__moveBookmark(_targetBookmark, _leve2Bookmark);
 				} else if (_leve1Bookmark && _leve1Bookmark.isValid) {
-					_bookmark.move(LocationOptions.AT_END, _leve1Bookmark);
+					__moveBookmark(_targetBookmark, _leve1Bookmark);
 				}
 				break;
+			case 4:
+				if (_leve3Bookmark && _leve3Bookmark.isValid) {
+					__moveBookmark(_targetBookmark, _leve3Bookmark);
+				} else if (_leve2Bookmark && _leve2Bookmark.isValid) {
+					__moveBookmark(_targetBookmark, _leve2Bookmark);
+				} else if (_leve1Bookmark && _leve1Bookmark.isValid) {
+					__moveBookmark(_targetBookmark, _leve1Bookmark);
+				}
+				break;
+			default:
+			/* $.writeln("Failed to nest bookmark. Level[" + _bookmarkLevel + "]"); */
 		}
 
 		/* Reset script label */
 		try {
-			_bookmark.insertLabel("addBookmark:level", "");
+			_targetBookmark.insertLabel("addBookmark:level", "");
 		} catch (_error) {
-			/* $.writeln(_error.message; */
+			/* $.writeln(_error.message); */
 		}
+	}
+
+	return true;
+}
+
+
+/**
+ * Move bookmark
+ * Position: at end (last child)
+ * @param {Bookmark} _targetBookmark 
+ * @param {Bookmark} _parentBookmark 
+ */
+function __moveBookmark(_targetBookmark, _parentBookmark) {
+
+	if (!_targetBookmark || !_targetBookmark.isValid) {
+		return false;
+	}
+	if (!_parentBookmark || !_parentBookmark.isValid) {
+		return false;
+	}
+	if (_targetBookmark === _parentBookmark) {
+		return false;
+	}
+
+	try {
+		_targetBookmark.move(LocationOptions.AT_END, _parentBookmark);
+	} catch (_error) {
+		/* $.writeln(_error.message); */
+		return false;
+	}
+
+	if (_targetBookmark.parent !== _parentBookmark) {
+		/* $.writeln("Failed to move bookmark."); */
+		return false;
 	}
 
 	return true;
