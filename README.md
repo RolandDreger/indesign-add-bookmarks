@@ -2,7 +2,8 @@
 
 The “addBookmarks.jsx” script automatically inserts bookmarks into an Adobe InDesign document. You can choose from: paragraph style, character style, or a GREP expression to search for.
 
-<img width="1024" height="563" alt="addBookmarks_numbering" src="https://github.com/user-attachments/assets/b9fdbe7c-bdc7-4b38-81f3-ae1530028c01" />
+<img width="1920" height="1056" alt="addBookmarks_v2-4-0" src="https://github.com/user-attachments/assets/f9c5d495-d240-47e4-9361-fc1db1db1708" />
+
 
 ## Usage
 
